@@ -46,6 +46,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ name, message }),
       });
       let data: CommentResponse | undefined;
