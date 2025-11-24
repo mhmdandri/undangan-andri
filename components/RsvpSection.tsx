@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import FooterNav from "./FooterNav";
 import { toast } from "react-toastify";
 import { motion } from "motion/react";
+import Modal from "./Modal";
+import { LuCopy, LuCopyCheck } from "react-icons/lu";
 
 type RsvpSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -14,10 +16,12 @@ type RsvpFormData = {
   email: string;
   is_present: boolean;
   total_guests: number;
+  code?: string;
 };
 type RsvpResponse = {
   error?: string;
   message: string;
+  data: { code: string };
 };
 const RsvpSection: React.FC<RsvpSectionProps> = ({
   verseRef,
@@ -30,6 +34,9 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
   const [guests, setGuests] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [code, setCode] = useState<string>("");
   const fetchData = async (payload: RsvpFormData) => {
     setIsLoading(true);
     setErrorMessage("");
@@ -65,6 +72,8 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
         throw new Error(backendError || "Failed to submit rsvp");
       }
       toast.success("RSVP berhasil dikirim! Terima kasih.");
+      setCode(data?.data.code || "");
+      setShowModal(true);
     } catch (error) {
       if (error instanceof Error) {
         setErrorMessage(error.message || "Failed to submit rsvp");
@@ -78,6 +87,49 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
     setEmail("");
     setAttendance("");
     setGuests("");
+  };
+  const reservationCode = code;
+  const fallbackCopyTextToClipboard = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "-9999px";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    if (typeof textArea.select === "function") {
+      textArea.select();
+    }
+
+    try {
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (err) {
+      document.body.removeChild(textArea);
+      toast.error("Gagal menyalin kode reservasi." + err);
+      return false;
+    }
+  };
+  const handleCopy = async () => {
+    const text = reservationCode;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 5000);
+        toast.success("Kode reservasi disalin ke clipboard!");
+        return;
+      } catch (err) {
+        toast.error("Gagal menyalin kode reservasi." + err);
+      }
+    }
+    const ok = fallbackCopyTextToClipboard(text);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 5000);
+      return;
+    }
   };
 
   return (
@@ -96,6 +148,42 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       >
         <source src="/media/road.mp4" type="video/mp4" />
       </video>
+      {showModal && (
+        <Modal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          title="Reservasi Berhasil!"
+        >
+          <div className="flex flex-col space-y-4">
+            {attendance === "hadir" ? (
+              <>
+                <div className="flex items-start">
+                  <h1>Simpan kode reservasi ini ya!</h1>
+                </div>
+                <div className="p-4 bg-white/10 border border-white/20 rounded-lg text-center flex flex-col items-center space-y-3">
+                  <div className="flex gap-3 items-center justify-center">
+                    <span className="font-mono text-xl text-white/95 select-all">
+                      {reservationCode}
+                    </span>
+                    <button onClick={handleCopy} className="self-center">
+                      {copied ? (
+                        <LuCopyCheck className="w-5 h-5" />
+                      ) : (
+                        <LuCopy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-start">
+                <h1>Terima kasih atas konfirmasinya!</h1>
+                <p>Semoga bisa ketemu di lain kesempatan ya</p>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />
