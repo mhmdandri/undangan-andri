@@ -21,7 +21,7 @@ type RsvpFormData = {
 type RsvpResponse = {
   error?: string;
   message: string;
-  data: { code: string };
+  data: { code: string; is_present: boolean };
 };
 const RsvpSection: React.FC<RsvpSectionProps> = ({
   verseRef,
@@ -37,6 +37,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
   const [showModal, setShowModal] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [code, setCode] = useState<string>("");
+  const [isPresent, setIsPreset] = useState<boolean>(false);
   const fetchData = async (payload: RsvpFormData) => {
     setIsLoading(true);
     setErrorMessage("");
@@ -73,6 +74,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       }
       toast.success("RSVP berhasil dikirim! Terima kasih.");
       setCode(data?.data.code || "");
+      setIsPreset(data?.data.is_present || false);
       setShowModal(true);
     } catch (error) {
       if (error instanceof Error) {
@@ -155,7 +157,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
           title="Reservasi Berhasil!"
         >
           <div className="flex flex-col space-y-4">
-            {attendance === "hadir" ? (
+            {isPresent ? (
               <>
                 <div className="flex items-start">
                   <h1>Simpan kode reservasi ini ya!</h1>

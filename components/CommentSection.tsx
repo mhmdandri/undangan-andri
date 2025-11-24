@@ -33,8 +33,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [responseMessage, setResponseMessage] = useState("");
   const fetchData = async () => {
     setErrorMessage("");
+    setResponseMessage("");
     if (!name.trim() || !message.trim()) {
       setErrorMessage("Nama dan pesan tidak boleh kosong");
       return;
@@ -68,6 +70,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         throw new Error(backendError || "Failed to submit comment");
       }
       toast.success(data?.message || "Comment submitted successfully");
+      setResponseMessage("Ucapan sudah terkirim, cek di halaman selanjutnya!");
       onSubmitSuccess?.();
       setName(guestName || "");
       setMessage("");
@@ -208,13 +211,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
               }}
             >
-              {errorMessage ? (
+              {errorMessage || responseMessage ? (
                 <motion.p
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-400 font-inter bg-red-300/10 py-2 px-4 rounded-md w-fit mx-auto"
+                  className={`${
+                    errorMessage
+                      ? "text-red-400 bg-red-300/10"
+                      : "text-emerald-300 bg-emerald-300/10"
+                  } font-inter py-2 px-4 rounded-md w-fit mx-auto`}
                 >
-                  {errorMessage}
+                  {errorMessage || responseMessage}
                 </motion.p>
               ) : null}
             </motion.div>
