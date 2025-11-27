@@ -13,6 +13,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
   return (
     <section
       ref={heroRef}
+      id="hero"
       className="relative flex h-dvh w-full items-center justify-center bg-black text-white"
     >
       <video

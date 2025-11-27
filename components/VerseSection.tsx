@@ -18,6 +18,7 @@ const VerseSection: React.FC<VerseSectionProps> = ({
   return (
     <section
       ref={verseRef}
+      id="verse"
       className="relative h-dvh w-full bg-black text-white"
     >
       {/* Background Video */}

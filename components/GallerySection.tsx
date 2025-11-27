@@ -46,6 +46,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({
 
   return (
     <section
+      id="gallery"
       ref={verseRef}
       className="relative h-dvh w-full text-white overflow-hidden"
       onTouchStart={handleTouchStart}

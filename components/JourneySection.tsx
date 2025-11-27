@@ -16,7 +16,11 @@ const JourneySection: React.FC<JourneySectionProps> = ({
   onPrev,
 }) => {
   return (
-    <section ref={verseRef} className="relative h-dvh w-full text-white">
+    <section
+      ref={verseRef}
+      id="journey"
+      className="relative h-dvh w-full text-white"
+    >
       {/* Background */}
       <video
         className="absolute inset-0 h-full w-full object-cover"

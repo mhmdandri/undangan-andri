@@ -87,6 +87,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   return (
     <section
       ref={verseRef}
+      id="comments"
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}

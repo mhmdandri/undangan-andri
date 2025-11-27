@@ -84,7 +84,7 @@ const DateSection: React.FC<DateSectionProps> = ({
       >
         {/* Foto kecil */}
         <motion.div
-          className="w-28 h-28 mb-6 rounded-md overflow-hidden shadow-lg"
+          className="relative w-28 h-28 mb-6 rounded-md overflow-hidden shadow-lg"
           variants={{
             hidden: { opacity: 0, scale: 0.9 },
             show: {
@@ -96,8 +96,8 @@ const DateSection: React.FC<DateSectionProps> = ({
         >
           <Image
             src="/media/pemeran2.png"
-            width={112}
-            height={112}
+            fill
+            sizes="112px"
             className="object-cover"
             alt="couple thumbnail"
             priority

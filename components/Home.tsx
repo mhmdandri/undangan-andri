@@ -80,9 +80,12 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
     const assets: string[] = [
       "/media/vid1.mp4",
       "/media/vid2.mp4",
+      "/media/vid3.mp4",
       "/media/vid1.png",
       "/media/pemeran2.png",
       "/media/prewed.png",
+      "/media/road.mp4",
+      "/music.mp3",
     ];
 
     const loadImage = (src: string) =>
@@ -161,7 +164,6 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
           finishDelay={300}
         />
       ) : null}
-
       <main
         aria-hidden={loading}
         className={`relative flex h-dvh w-full items-stretch justify-center overflow-hidden bg-black transition-opacity ${
@@ -181,6 +183,15 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
         </video>
 
         <div className="absolute inset-0 bg-black/60" aria-hidden />
+
+        {/* <div className="absolute z-50 top-0 right-0 my-3 mx-7">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 text-white cursor-pointer"
+          >
+            <RxHamburgerMenu className="w-5 h-5" />
+          </button>
+        </div> */}
 
         <motion.div
           initial="hidden"

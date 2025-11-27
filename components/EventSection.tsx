@@ -15,7 +15,11 @@ const EventSection: React.FC<EventSectionProps> = ({
   onPrev,
 }) => {
   return (
-    <section ref={verseRef} className="relative h-dvh w-full text-white">
+    <section
+      ref={verseRef}
+      id="event"
+      className="relative h-dvh w-full text-white"
+    >
       {/* Background image */}
       <video
         className="absolute inset-0 h-full w-full object-cover"
