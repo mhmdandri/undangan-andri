@@ -47,7 +47,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       return;
     }
     try {
-      const res = await fetch("https://api.mohaproject.dev/api/reservations", {
+      const res = await fetch("https://api.mohaproject.tech/api/reservations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -89,7 +89,7 @@ const VerseSection: React.FC<VerseSectionProps> = ({
           }}
           className="text-base text-white/80"
         >
-          John &amp; Jane
+          Andri &amp; Cica
         </motion.p>
       </motion.div>
 

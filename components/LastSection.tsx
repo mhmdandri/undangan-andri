@@ -112,7 +112,7 @@ const LastSection: React.FC<LastSectionProps> = ({
               },
             }}
           >
-            John & Jane
+            Andri & Cica
           </motion.div>
         </div>
       </motion.div>

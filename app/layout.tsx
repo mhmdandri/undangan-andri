@@ -21,9 +21,33 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
+  : process.env.VERCEL_URL
+    ? new URL(`https://${process.env.VERCEL_URL}`)
+    : new URL("http://localhost:3000");
+
 export const metadata: Metadata = {
-  title: "The Wedding Of John Doe & Jane Doe",
-  description: "by mohaproject",
+  metadataBase: siteUrl,
+  title: "The Wedding Of Andri & Cica",
+  description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
+  openGraph: {
+    type: "website",
+    title: "The Wedding Of Andri & Cica",
+    description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
+    images: [
+      {
+        url: "/1.jpg",
+        alt: "Andri & Cica",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Wedding Of Andri & Cica",
+    description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
+    images: ["/1.jpg"],
+  },
 };
 export const viewport: Viewport = {
   width: "device-width",

@@ -25,7 +25,7 @@ const DateSection: React.FC<DateSectionProps> = ({
   });
 
   useEffect(() => {
-    const target = new Date("2026-03-30T07:00:00").getTime();
+    const target = new Date("2026-11-21T07:00:00").getTime();
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -137,7 +137,7 @@ const DateSection: React.FC<DateSectionProps> = ({
               },
             }}
           >
-            John &amp; Jane
+            Andri &amp; Cica
           </motion.h1>
         </motion.div>
 

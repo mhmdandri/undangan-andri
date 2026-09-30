@@ -29,10 +29,10 @@ const CoverSection: React.FC<CoverSectionProps> = ({ onOpen, guestName }) => {
         <section className="w-full text-center tracking-[0.35em] text-white/70">
           <p className="text-xs uppercase">THE WEDDING OF</p>
           <h1 className="mt-6 text-4xl font-semibold tracking-normal">
-            John &amp; Jane
+            Andri &amp; Cica
           </h1>
           <p className="mt-4 text-sm tracking-[0.35em] text-white/80">
-            SELASA, 30 SEPTEMBER 2025
+            SABTU, 21 NOVEMBER 2026
           </p>
         </section>
 

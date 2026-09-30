@@ -75,7 +75,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
           }}
           className="text-4xl font-semibold font-alex-brush"
         >
-          John &amp; Jane
+          Andri &amp; Cica
         </motion.h2>
 
         <motion.p
@@ -85,7 +85,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
           }}
           className="text-sm tracking-[0.35em] text-white/80"
         >
-          SELASA, 30 SEPTEMBER 2025
+          SABTU, 21 NOVEMBER 2026
         </motion.p>
 
         <motion.div

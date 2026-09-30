@@ -24,7 +24,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
     >
       {/* Background image */}
       <Image
-        src="/media/pemeran1.png"
+        src="/andri.JPG"
         alt="groom"
         fill
         className="object-cover"
@@ -59,7 +59,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
             THE GROOM
           </motion.p>
           <motion.h1
-            className="text-4xl md:text-5xl font-light font-alex-brush"
+            className="text-2xl md:text-3xl font-light font-alex-brush"
             variants={{
               hidden: { opacity: 0, y: 12, scale: 0.995 },
               show: {
@@ -70,7 +70,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
               },
             }}
           >
-            John Doe
+            Muhamad Andriyansyah S.Kom
           </motion.h1>
           <motion.div
             className="flex items-center gap-4"
@@ -86,7 +86,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
                 show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
               }}
             >
-              Putra ke 1 dari 2
+              Putra ke 3 dari 4
             </motion.p>
 
             <motion.div
@@ -114,7 +114,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
               show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
             }}
           >
-            Bapak John Wick dan Ibu Jane Wick
+            Bapak Nana dan Ibu Kanah
           </motion.p>
           <motion.a
             href="https://instagram.com/mhmdandri_"
@@ -146,7 +146,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
             >
               <BsInstagram />
             </span>
-            <span>johndoe666</span>
+            <span>mhmdandri_</span>
           </motion.a>
         </div>
       </motion.div>

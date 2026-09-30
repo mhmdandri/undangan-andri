@@ -13,7 +13,7 @@ type PageProps = {
 
 async function getComments(): Promise<Wish[]> {
   try {
-    const res = await fetch("https://api.mohaproject.dev/api/comments", {
+    const res = await fetch("https://api.mohaproject.tech/api/comments", {
       cache: "no-store",
     });
     if (!res.ok) {

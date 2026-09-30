@@ -31,7 +31,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
   const [comments, setComments] = useState<Wish[]>(data ?? []);
   const refreshComments = useCallback(async () => {
     try {
-      const res = await fetch("https://api.mohaproject.dev/api/comments", {
+      const res = await fetch("https://api.mohaproject.tech/api/comments", {
         cache: "no-store",
       });
       if (!res.ok) return;
@@ -85,6 +85,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
       "/media/pemeran2.png",
       "/media/prewed.png",
       "/media/road.mp4",
+      "/media/1.mp4",
       "/music.mp3",
     ];
 
@@ -227,11 +228,11 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
               }}
               className="text-3xl font-semibold font-alex-brush tracking-normal sm:text-4xl"
             >
-              John &amp; Jane
+              Andri &amp; Cica
             </motion.h1>
 
             <p className="text-xs tracking-[0.35em] text-white/80">
-              SELASA, 30 SEPTEMBER 2025
+              SABTU, 21 NOVEMBER 2026
             </p>
           </motion.section>
 

@@ -24,7 +24,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
     >
       {/* Background image */}
       <Image
-        src="/media/pemeran2.png"
+        src="/cica.JPG"
         alt="bride"
         fill
         className="object-cover"
@@ -61,7 +61,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
           </motion.p>
 
           <motion.h1
-            className="text-4xl md:text-5xl font-light font-alex-brush"
+            className="text-2xl md:text-3xl font-light font-alex-brush"
             variants={{
               hidden: { opacity: 0, y: 12, scale: 0.996 },
               show: {
@@ -72,7 +72,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
               },
             }}
           >
-            Jane Doe
+            Cica Purwanti S.pd Gr
           </motion.h1>
 
           <motion.div
@@ -89,7 +89,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
                 show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
               }}
             >
-              Putra ke 1 dari 2
+              Putra ke 1 dari 3
             </motion.p>
 
             <motion.div
@@ -118,7 +118,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
               show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
             }}
           >
-            Bapak John Cena dan Ibu Jane Cena
+            Bapak Iwan dan Ibu Carsinah
           </motion.p>
 
           <motion.a
@@ -148,7 +148,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
             <span>
               <BsInstagram />
             </span>
-            <span>janedoe1</span>
+            <span>cicapurwanti</span>
           </motion.a>
         </div>
       </motion.div>

@@ -62,7 +62,7 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
             }}
           >
-            Selasa
+            Sabtu
           </motion.p>
 
           <motion.h1
@@ -77,7 +77,7 @@ const EventSection: React.FC<EventSectionProps> = ({
               },
             }}
           >
-            30 September 2025
+            21 November 2026
           </motion.h1>
         </motion.div>
 

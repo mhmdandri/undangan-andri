@@ -94,7 +94,7 @@ export default function Sidebar({
     if (open) {
       window.setTimeout(() => {
         const el = dialogRef.current?.querySelector<HTMLElement>(
-          "button, a, [tabindex]:not([tabindex='-1'])"
+          "button, a, [tabindex]:not([tabindex='-1'])",
         );
         el?.focus();
       }, 50);
@@ -148,7 +148,7 @@ export default function Sidebar({
                       The Wedding Of
                     </div>
                     <div className="text-lg font-alex-brush leading-none text-white/95">
-                      John &amp; Jane
+                      Andri &amp; Cica
                     </div>
                   </div>
 
@@ -182,7 +182,7 @@ export default function Sidebar({
                             } else {
                               // default: scroll to anchor if exists
                               const target = document.querySelector(
-                                l.href ?? ""
+                                l.href ?? "",
                               );
                               if (target) {
                                 e.preventDefault();
@@ -223,7 +223,7 @@ export default function Sidebar({
                       <div className="uppercase tracking-[0.25em] text-xs">
                         Date
                       </div>
-                      <div className="font-playfair">30 September 2025</div>
+                      <div className="font-playfair">21 November 2026</div>
                     </div>
 
                     <div>
@@ -231,7 +231,7 @@ export default function Sidebar({
                         onClick={() => {
                           // quick action: open save-the-date modal or copy to clipboard
                           navigator.clipboard?.writeText?.(
-                            "30 September 2025 — John & Jane"
+                            "21 November 2026 — Andri & Cica",
                           );
                         }}
                         className="rounded-full bg-white/10 px-3 py-2 text-xs hover:bg-white/16 transition"

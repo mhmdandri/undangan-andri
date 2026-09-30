@@ -29,7 +29,7 @@ const JourneySection: React.FC<JourneySectionProps> = ({
         loop
         playsInline
       >
-        <source src="/media/road.mp4" type="video/mp4" />
+        <source src="/media/2.mp4" type="video/mp4" />
       </video>
 
       {/* Overlay */}

@@ -36,34 +36,41 @@ const LoadingSection: React.FC<LoadingSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
       aria-label="Loading screen"
     >
-      <Image
-        src="/media/prewed.png"
-        alt="bride"
-        fill
-        className="object-cover"
-        priority
-      />
+      <Image src="/3.jpg" alt="bride" fill className="object-cover" priority />
 
       <div className="absolute inset-0 bg-black/75" />
 
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center max-w-md mx-auto">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center max-w-md mx-auto mt-32">
         <p className="uppercase tracking-[0.25em] text-sm text-white/60 mb-6">
           The Wedding Of
         </p>
 
         <div className="w-36 h-36 rounded-md overflow-hidden shadow-lg mb-6 border border-white/8">
-          <Image
+          {/* <Image
             src="/media/prewed.png"
             alt="couple thumbnail"
             width={144}
             height={144}
             className="object-cover w-full h-full"
             priority
-          />
+          /> */}
+          <video
+            className="object-cover w-full h-full"
+            width={144}
+            height={144}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="none"
+            poster="/1.jpg"
+          >
+            <source src="/media/1.mp4" type="video/mp4" />
+          </video>
         </div>
 
         <h1 className="text-2xl md:text-3xl font-light tracking-widest text-white/95 mb-12 font-alex-brush">
-          <span className="block">John &amp; Jane</span>
+          <span className="block">Andri &amp; Cica</span>
         </h1>
 
         <div className="mt-8 mb-16">

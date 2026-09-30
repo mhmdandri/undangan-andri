@@ -43,7 +43,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     }
     setIsLoading(true);
     try {
-      const res = await fetch("https://api.mohaproject.dev/api/comments", {
+      const res = await fetch("https://api.mohaproject.tech/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
