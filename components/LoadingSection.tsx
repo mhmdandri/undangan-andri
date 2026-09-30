@@ -36,7 +36,7 @@ const LoadingSection: React.FC<LoadingSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
       aria-label="Loading screen"
     >
-      <Image src="/3.jpg" alt="bride" fill className="object-cover" priority />
+      <Image src="/3.JPG" alt="bride" fill className="object-cover" priority />
 
       <div className="absolute inset-0 bg-black/75" />
 

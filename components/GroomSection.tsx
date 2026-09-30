@@ -20,16 +20,24 @@ const GroomSection: React.FC<GroomSectionProps> = ({
   return (
     <section
       ref={verseRef}
-      className="relative h-dvh w-full bg-black text-white"
+      className="relative h-dvh w-full bg-black text-white overflow-hidden"
     >
       {/* Background image */}
-      <Image
-        src="/andri.JPG"
-        alt="groom"
-        fill
-        className="object-cover"
-        priority
-      />
+      <motion.div
+        initial={{ opacity: 0, scale: 1.06 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: false, amount: 0.25 }}
+        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0"
+      >
+        <Image
+          src="/andri.JPG"
+          alt="groom"
+          fill
+          className="object-cover"
+          priority
+        />
+      </motion.div>
 
       {/* Overlay gelap */}
       <div className="absolute inset-0 bg-black/45" />

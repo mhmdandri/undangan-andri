@@ -23,9 +23,7 @@ const inter = Inter({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-  : process.env.VERCEL_URL
-    ? new URL(`https://${process.env.VERCEL_URL}`)
-    : new URL("https://andricica.mohaproject.tech");
+  : new URL("https://andricica.mohaproject.tech");
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
@@ -37,7 +35,7 @@ export const metadata: Metadata = {
     description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
     images: [
       {
-        url: "/1.jpg",
+        url: "/og-image.jpg",
         alt: "Andri & Cica",
       },
     ],
@@ -46,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The Wedding Of Andri & Cica",
     description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
-    images: ["/1.jpg"],
+    images: ["/og-image.jpg"],
   },
 };
 export const viewport: Viewport = {
