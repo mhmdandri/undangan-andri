@@ -31,7 +31,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
         className="absolute inset-0"
       >
         <Image
-          src="/cica.JPG"
+          src="/cica1.JPG"
           alt="bride"
           fill
           className="object-cover"

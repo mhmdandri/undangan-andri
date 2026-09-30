@@ -62,7 +62,7 @@ const DateSection: React.FC<DateSectionProps> = ({
         playsInline
         preload="none"
       >
-        <source src="/media/vid2.mp4" type="video/mp4" />
+        <source src="/media/3.mp4" type="video/mp4" />
       </video>
 
       {/* Overlay */}
@@ -95,7 +95,7 @@ const DateSection: React.FC<DateSectionProps> = ({
           }}
         >
           <Image
-            src="/media/pemeran2.png"
+            src="/5.png"
             fill
             sizes="112px"
             className="object-cover"

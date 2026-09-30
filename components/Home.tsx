@@ -16,6 +16,7 @@ import GallerySection from "./GallerySection";
 import LastSection from "./LastSection";
 import LoadingSection from "@/components/LoadingSection"; // <--- baru
 import { motion } from "motion/react";
+import Image from "next/image";
 
 type Wish = {
   name: string;
@@ -91,7 +92,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
 
     const loadImage = (src: string) =>
       new Promise<void>((resolve) => {
-        const img = new Image();
+        const img = new window.Image();
         img.src = src;
         img.onload = () => resolve();
         img.onerror = () => resolve();
@@ -171,7 +172,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
           loading ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        <video
+        {/* <video
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           muted
@@ -181,7 +182,22 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
           poster="/media/vid1.png"
         >
           <source src="/media/vid1.mp4" type="video/mp4" />
-        </video>
+        </video> */}
+        <motion.div
+          initial={{ opacity: 0, scale: 1.06 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: false, amount: 0.25 }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0"
+        >
+          <Image
+            src="/1.JPG"
+            alt="utama"
+            fill
+            className="object-cover"
+            priority
+          />
+        </motion.div>
 
         <div className="absolute inset-0 bg-black/60" aria-hidden />
 
@@ -243,7 +259,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
             }}
             className="flex w-full flex-col items-center text-center text-white/80 space-y-4"
           >
-            <p className="italic text-lg">Kepada</p>
+            <p className="italic text-lg translate-y-2">Kepada</p>
 
             <motion.h1
               variants={{

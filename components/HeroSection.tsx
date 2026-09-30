@@ -3,6 +3,7 @@ import React from "react";
 import { BsArrowDown } from "react-icons/bs";
 import { PiFlowerTulipThin } from "react-icons/pi";
 import { motion } from "motion/react";
+import Image from "next/image";
 
 type HeroSectionProps = {
   heroRef: React.RefObject<HTMLDivElement | null>;
@@ -14,9 +15,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
     <section
       ref={heroRef}
       id="hero"
-      className="relative flex h-dvh w-full items-center justify-center bg-black text-white"
+      className="relative flex h-dvh w-full items-center justify-center bg-black text-white overflow-hidden"
     >
-      <video
+      {/* <video
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
         muted
@@ -25,7 +26,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
         preload="none"
       >
         <source src="/media/vid2.mp4" type="video/mp4" />
-      </video>
+      </video> */}
+      <motion.div
+        initial={{ opacity: 0, scale: 1.06 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: false, amount: 0.25 }}
+        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0"
+      >
+        <Image
+          src="/2.JPG"
+          alt="hero"
+          fill
+          className="object-cover object-[54%_center]"
+          priority
+        />
+      </motion.div>
 
       <div className="absolute inset-0 bg-black/60" aria-hidden />
 
