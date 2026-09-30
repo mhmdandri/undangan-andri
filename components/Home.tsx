@@ -191,7 +191,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
           className="absolute inset-0"
         >
           <Image
-            src="/1.JPG"
+            src="/1.jpg"
             alt="utama"
             fill
             className="object-cover"
