@@ -25,7 +25,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
   : process.env.VERCEL_URL
     ? new URL(`https://${process.env.VERCEL_URL}`)
-    : new URL("http://localhost:3000");
+    : new URL("https://andricica.mohaproject.tech");
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
