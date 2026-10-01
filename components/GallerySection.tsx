@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import FooterNav from "./FooterNav";
 import Image from "next/image";
 import { motion } from "motion/react";
+import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type GallerySectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -53,16 +54,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({
       onTouchEnd={handleTouchEnd}
     >
       {/* BACKGROUND VIDEO */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="none"
-      >
-        <source src="/media/road.mp4" type="video/mp4" />
-      </video>
+      <LazyBackgroundVideo src="/media/road.mp4" />
 
       <div className="absolute inset-0 bg-black/45" />
 
@@ -135,7 +127,6 @@ const GallerySection: React.FC<GallerySectionProps> = ({
                     fill
                     className="object-cover rounded-xl"
                     sizes="(max-width: 768px) 100vw, 800px"
-                    priority={i === 0}
                   />
                 </motion.div>
               ))}

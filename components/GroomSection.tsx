@@ -35,7 +35,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
           alt="groom"
           fill
           className="object-cover"
-          priority
+          sizes="(max-width: 768px) 100vw, 450px"
         />
       </motion.div>
 

@@ -9,16 +9,19 @@ const alexBrush = Alex_Brush({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-alex-brush",
+  display: "swap",
 });
 const playFairDisplay = Playfair_Display({
   weight: ["400", "700"],
   subsets: ["latin"],
   variable: "--font-playfair-display",
+  display: "swap",
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -28,22 +31,27 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: "The Wedding Of Andri & Cica",
-  description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
+  description: "Undangan pernikahan Andri & Cica, Sabtu, 21 November 2026.",
   openGraph: {
     type: "website",
     title: "The Wedding Of Andri & Cica",
-    description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
+    description: "Undangan pernikahan Andri & Cica, Sabtu, 21 November 2026.",
+    siteName: "The Wedding Of Andri & Cica",
+    locale: "id_ID",
     images: [
       {
         url: "/og-image.jpg",
-        alt: "Andri & Cica",
+        width: 800,
+        height: 800,
+        type: "image/jpeg",
+        alt: "The Wedding Of Andri & Cica",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "The Wedding Of Andri & Cica",
-    description: "Undangan pernikahan Andri & Cica, 21 November 2026.",
+    description: "Undangan pernikahan Andri & Cica, Sabtu, 21 November 2026.",
     images: ["/og-image.jpg"],
   },
 };
@@ -61,7 +69,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${alexBrush.variable} ${playFairDisplay} ${inter.variable} h-dvh antialiased`}
+        className={`${alexBrush.variable} ${playFairDisplay.variable} ${inter.variable} h-dvh antialiased`}
       >
         <ToastContainer
           closeButton={false}

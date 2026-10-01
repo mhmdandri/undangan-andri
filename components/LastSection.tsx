@@ -2,6 +2,7 @@
 import React from "react";
 import FooterNav from "./FooterNav";
 import { motion } from "motion/react";
+import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type LastSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -20,16 +21,7 @@ const LastSection: React.FC<LastSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="none"
-      >
-        <source src="/media/road.mp4" type="video/mp4" />
-      </video>
+      <LazyBackgroundVideo src="/media/road.mp4" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />

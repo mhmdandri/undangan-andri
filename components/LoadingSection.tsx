@@ -62,7 +62,7 @@ const LoadingSection: React.FC<LoadingSectionProps> = ({
             muted
             loop
             playsInline
-            preload="none"
+            preload="auto"
             poster="/1.jpg"
           >
             <source src="/media/1.mp4" type="video/mp4" />

@@ -3,6 +3,7 @@
 import React from "react";
 import FooterNav from "./FooterNav";
 import { motion } from "motion/react";
+import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type JourneySectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -22,15 +23,7 @@ const JourneySection: React.FC<JourneySectionProps> = ({
       className="relative h-dvh w-full text-white"
     >
       {/* Background */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-      >
-        <source src="/media/2.mp4" type="video/mp4" />
-      </video>
+      <LazyBackgroundVideo src="/media/2.mp4" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />

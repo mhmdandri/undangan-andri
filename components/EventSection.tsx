@@ -2,6 +2,7 @@
 import React from "react";
 import FooterNav from "./FooterNav";
 import { motion } from "motion/react";
+import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type EventSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -21,15 +22,7 @@ const EventSection: React.FC<EventSectionProps> = ({
       className="relative h-dvh w-full text-white"
     >
       {/* Background image */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-      >
-        <source src="/media/vid2.mp4" type="video/mp4" />
-      </video>
+      <LazyBackgroundVideo src="/media/vid2.mp4" />
 
       {/* Overlay gelap */}
       <div className="absolute inset-0 bg-black/45" />

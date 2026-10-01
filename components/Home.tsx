@@ -77,18 +77,7 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
 
   useEffect(() => {
     let mounted = true;
-    // asset yang mau di load
-    const assets: string[] = [
-      "/media/vid1.mp4",
-      "/media/vid2.mp4",
-      "/media/vid3.mp4",
-      "/media/vid1.png",
-      "/media/pemeran2.png",
-      "/media/prewed.png",
-      "/media/road.mp4",
-      "/media/1.mp4",
-      "/music.mp3",
-    ];
+    const criticalAssets = ["/1.jpg", "/2.JPG", "/3.JPG"];
 
     const loadImage = (src: string) =>
       new Promise<void>((resolve) => {
@@ -98,52 +87,33 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
         img.onerror = () => resolve();
       });
 
-    const loadVideoMeta = (src: string) =>
-      new Promise<void>((resolve) => {
-        try {
-          const v = document.createElement("video");
-          v.preload = "metadata";
-          v.src = src;
-          const onLoaded = () => {
-            cleanup();
-            resolve();
-          };
-          const onErr = () => {
-            cleanup();
-            resolve();
-          };
-          function cleanup() {
-            v.removeEventListener("loadedmetadata", onLoaded);
-            v.removeEventListener("canplaythrough", onLoaded);
-            v.removeEventListener("error", onErr);
-          }
-          v.addEventListener("loadedmetadata", onLoaded);
-          v.addEventListener("canplaythrough", onLoaded);
-          v.addEventListener("error", onErr);
-        } catch {
-          resolve();
-        }
-      });
-    const loaderFor = (src: string) =>
-      src.match(/\.(mp4|webm|ogg)$/i) ? loadVideoMeta(src) : loadImage(src);
-    let completed = 0;
-    const total = assets.length;
+    let loadedCount = 0;
+    const total = criticalAssets.length;
 
-    (async () => {
-      for (const a of assets) {
-        await loaderFor(a);
-        completed += 1;
-        if (!mounted) return;
-        const pct = Math.round((completed / total) * 100);
-        setProgress(pct);
-      }
+    const updateProgress = () => {
       if (!mounted) return;
+      loadedCount++;
+      const pct = Math.min(90, Math.round((loadedCount / total) * 90));
+      setProgress(pct);
+    };
+
+    // Load critical assets in parallel with a 1.4s safety ceiling
+    const loadPromise = Promise.all(
+      criticalAssets.map((src) => loadImage(src).then(updateProgress))
+    );
+
+    const timeoutPromise = new Promise<void>((resolve) =>
+      setTimeout(resolve, 1400)
+    );
+
+    Promise.race([loadPromise, timeoutPromise]).then(() => {
+      if (!mounted) return;
+      setProgress(100);
       setTimeout(() => {
         if (!mounted) return;
-        setProgress(100);
-        setTimeout(() => setLoading(false), 200);
-      }, 300);
-    })();
+        setLoading(false);
+      }, 250);
+    });
 
     return () => {
       mounted = false;

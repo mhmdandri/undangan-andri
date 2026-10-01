@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import FooterNav from "./FooterNav";
 import { BsArrowRight } from "react-icons/bs";
 import { motion } from "motion/react";
+import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type DateSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -54,16 +55,7 @@ const DateSection: React.FC<DateSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="none"
-      >
-        <source src="/media/3.mp4" type="video/mp4" />
-      </video>
+      <LazyBackgroundVideo src="/media/3.mp4" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />
@@ -100,7 +92,6 @@ const DateSection: React.FC<DateSectionProps> = ({
             sizes="112px"
             className="object-cover"
             alt="couple thumbnail"
-            priority
           />
         </motion.div>
 

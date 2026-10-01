@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Sidebar from "@/components/Sidebar"; // asumsi Sidebar sudah kamu tambahkan
 import { RxHamburgerMenu } from "react-icons/rx";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export default function SidebarProvider() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

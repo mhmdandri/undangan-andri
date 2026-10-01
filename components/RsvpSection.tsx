@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { motion } from "motion/react";
 import Modal from "./Modal";
 import { LuCopy, LuCopyCheck } from "react-icons/lu";
+import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type RsvpSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -140,16 +141,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="none"
-      >
-        <source src="/media/road.mp4" type="video/mp4" />
-      </video>
+      <LazyBackgroundVideo src="/media/road.mp4" />
       {showModal && (
         <Modal
           open={showModal}

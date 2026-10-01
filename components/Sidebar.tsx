@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "motion/react";
 import {
   BsX,
   BsHouse,
@@ -139,7 +139,6 @@ export default function Sidebar({
                       width={56}
                       height={56}
                       className="object-cover"
-                      priority
                     />
                   </div>
 

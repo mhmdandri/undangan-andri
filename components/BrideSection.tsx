@@ -35,7 +35,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
           alt="bride"
           fill
           className="object-cover"
-          priority
+          sizes="(max-width: 768px) 100vw, 450px"
         />
       </motion.div>
 
