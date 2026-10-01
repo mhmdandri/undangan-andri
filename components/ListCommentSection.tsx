@@ -30,7 +30,7 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <LazyBackgroundVideo src="/media/road.mp4" />
+      <LazyBackgroundVideo src="/media/5.mp4" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />
@@ -77,20 +77,24 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
                   transition: { duration: 0.5, ease: "easeOut" },
                 },
               }}
-              whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(0,0,0,0.35)" }}
+              whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.35)" }}
+              whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 260, damping: 26 }}
             >
               <div
-                className={`flex items-start gap-3 p-4 rounded-2xl backdrop-blur-sm
-            bg-white/6 border border-white/8 shadow-sm
+                className={`group flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl
+            bg-black/25 hover:bg-black/5 active:bg-black/5
+            border border-white/15 hover:border-white/30 active:border-white/30
+            backdrop-blur-[2px] hover:backdrop-blur-none active:backdrop-blur-none
+            shadow-lg transition-all duration-300 cursor-pointer select-none
             ${isRight ? "flex-row-reverse text-right" : "text-left"}`}
               >
                 <motion.div
-                  className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-semibold
+                  className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-semibold text-xs tracking-wider border border-white/20 group-hover:border-white/30 shadow-sm transition-colors
               ${
                 isRight
-                  ? "bg-white/10 text-white/95"
-                  : "bg-white/12 text-white/95"
+                  ? "bg-white/10 group-hover:bg-white/5 text-white"
+                  : "bg-white/15 group-hover:bg-white/5 text-white"
               }`}
                   aria-hidden="true"
                   variants={{
@@ -107,7 +111,7 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
 
                 <div className="min-w-0">
                   <motion.p
-                    className="text-sm font-semibold italic tracking-wide text-white/95"
+                    className="text-sm font-semibold italic tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
                     variants={{
                       hidden: { x: -8, opacity: 0 },
                       show: {
@@ -121,7 +125,7 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
                   </motion.p>
 
                   <motion.p
-                    className="mt-1 text-sm leading-relaxed text-white/90 wrap-break-words"
+                    className="mt-1 text-sm leading-relaxed text-white/95 wrap-break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
                     variants={{
                       hidden: { opacity: 0 },
                       show: { opacity: 1, transition: { duration: 0.5 } },
@@ -131,7 +135,7 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
                   </motion.p>
 
                   <motion.p
-                    className="mt-2 text-[11px] text-white/60"
+                    className="mt-2 text-[11px] text-white/70 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
                     variants={{
                       hidden: { opacity: 0, y: 6 },
                       show: { opacity: 1, y: 0, transition: { duration: 0.4 } },

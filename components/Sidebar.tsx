@@ -77,7 +77,7 @@ export default function Sidebar({
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // default thumbnail path (uploaded file). The environment will transform this path to a URL.
-  const defaultThumb = "/media/prewed.png";
+  const defaultThumb = "/og-image.png";
   const imgSrc = thumbUrl ?? defaultThumb;
 
   // close on ESC

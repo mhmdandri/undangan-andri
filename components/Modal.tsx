@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import React from "react";
 
 type WeddingModalProps = {
@@ -16,11 +16,28 @@ const Modal: React.FC<WeddingModalProps> = ({
   title,
   children,
 }) => {
+  React.useEffect(() => {
+    if (open) {
+      window.dispatchEvent(
+        new CustomEvent("modal-open-change", { detail: { open: true } }),
+      );
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("modal-open-change", { detail: { open: false } }),
+      );
+    }
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("modal-open-change", { detail: { open: false } }),
+      );
+    };
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-999 flex items-center justify-center px-6"
+          className="fixed inset-0 z-200 flex items-center justify-center px-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

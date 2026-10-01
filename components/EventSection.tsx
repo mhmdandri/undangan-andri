@@ -44,7 +44,7 @@ const EventSection: React.FC<EventSectionProps> = ({
         className="relative z-10 px-6 pt-10 max-w-xl space-y-4 text-white/90"
       >
         <motion.div
-          className="space-y-2 mt-15"
+          className="space-y-2 mt-10"
           variants={{
             hidden: { opacity: 0, y: 10 },
             show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -90,7 +90,7 @@ const EventSection: React.FC<EventSectionProps> = ({
           style={{ transformOrigin: "left center" }}
         />
         <motion.div
-          className="space-y-2 font-playfair mt-20"
+          className="space-y-2 font-playfair mt-5"
           variants={{
             hidden: { opacity: 0 },
             show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -113,7 +113,7 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, y: 0 },
             }}
           >
-            07.00 WIB
+            09.00 WIB
           </motion.p>
 
           <motion.p
@@ -123,7 +123,7 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, y: 0 },
             }}
           >
-            Balai Kota Bikini Bottom
+            Turi Jaya Gang IV
           </motion.p>
 
           <motion.p
@@ -133,11 +133,12 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, transition: { duration: 0.5 } },
             }}
           >
-            Jl. Raya Pantai No.123, Desa Laut, Kec. Samudra, Kota Bikini Bottom
+            Jl. Turi Jaya Gang IV No 1<br></br> Sagara Makmur Kec. Tarumajaya,
+            <br></br>Kab. Bekasi Jawa Barat
           </motion.p>
 
           <motion.button
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-white/90 px-5 py-2 text-xs font-semibold text-black tracking-wide shadow-sm hover:bg-white"
+            className="mt-2 inline-flex items-center justify-center rounded-full bg-white/90 px-5 py-2 text-xs font-semibold text-black tracking-wide shadow-sm hover:bg-white cursor-pointer"
             variants={{
               hidden: { opacity: 0, y: 10, scale: 0.98 },
               show: {
@@ -198,7 +199,7 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, y: 0 },
             }}
           >
-            13.00 – 15.00 WIB
+            11.00 – Selesai
           </motion.p>
 
           <motion.p
@@ -208,7 +209,7 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, y: 0 },
             }}
           >
-            Balai Kota Bikini Bottom
+            Turi Jaya Gang IV
           </motion.p>
 
           <motion.p
@@ -218,11 +219,12 @@ const EventSection: React.FC<EventSectionProps> = ({
               show: { opacity: 1, transition: { duration: 0.5 } },
             }}
           >
-            Jl. Raya Pantai No.123, Desa Laut, Kec. Samudra, Kota Bikini Bottom
+            Jl. Turi Jaya Gang IV No 1<br></br> Sagara Makmur Kec. Tarumajaya,
+            <br></br>Kab. Bekasi Jawa Barat
           </motion.p>
 
           <motion.button
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-white/90 px-5 py-2 text-xs font-semibold text-black tracking-wide shadow-sm hover:bg-white"
+            className="mt-2 inline-flex items-center justify-center rounded-full bg-white/90 px-5 py-2 text-xs font-semibold text-black tracking-wide shadow-sm hover:bg-white cursor-pointer"
             variants={{
               hidden: { opacity: 0, y: 10, scale: 0.98 },
               show: {

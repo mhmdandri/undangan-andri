@@ -62,12 +62,33 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
   const scrollTo = (ref: React.RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-  const handleOpen = () => scrollTo(heroRef);
+  const handleOpen = () => {
+    if (typeof window !== "undefined") {
+      const v = document.createElement("video");
+      v.preload = "auto";
+      v.src = "/media/2.mp4";
+    }
+    scrollTo(heroRef);
+  };
   const handleScrollDown = () => scrollTo(verseRef);
   const handleGroomScrollDown = () => scrollTo(groomRef);
   const handleBrideScrollDown = () => scrollTo(brideRef);
-  const handleJourneyScrollDown = () => scrollTo(journeyRef);
-  const handleEventScrollDown = () => scrollTo(eventRef);
+  const handleJourneyScrollDown = () => {
+    if (typeof window !== "undefined") {
+      const v = document.createElement("video");
+      v.preload = "auto";
+      v.src = "/media/4.mp4";
+    }
+    scrollTo(journeyRef);
+  };
+  const handleEventScrollDown = () => {
+    if (typeof window !== "undefined") {
+      const v = document.createElement("video");
+      v.preload = "auto";
+      v.src = "/media/3.mp4";
+    }
+    scrollTo(eventRef);
+  };
   const handleDateScrollDown = () => scrollTo(dateRef);
   const handleCommentScrollDown = () => scrollTo(commentRef);
   const handleListCommentScrollDown = () => scrollTo(listCommentRef);
