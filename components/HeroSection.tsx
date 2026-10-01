@@ -17,16 +17,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
       id="hero"
       className="relative flex h-dvh w-full items-center justify-center bg-black text-white overflow-hidden"
     >
-      {/* <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="none"
-      >
-        <source src="/media/vid2.mp4" type="video/mp4" />
-      </video> */}
       <motion.div
         initial={{ opacity: 0, scale: 1.06 }}
         whileInView={{ opacity: 1, scale: 1 }}

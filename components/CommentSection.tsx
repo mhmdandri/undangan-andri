@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import FooterNav from "./FooterNav";
 import { toast } from "react-toastify";
 import { motion } from "motion/react";
-import LazyBackgroundVideo from "./LazyBackgroundVideo";
+import Image from "next/image";
 
 type CommentSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -92,7 +92,21 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <LazyBackgroundVideo src="/media/road.mp4" />
+      <motion.div
+        initial={{ opacity: 0, scale: 1.06 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: false, amount: 0.25 }}
+        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0"
+      >
+        <Image
+          src="/8.JPG"
+          alt="comment"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 450px"
+        />
+      </motion.div>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />

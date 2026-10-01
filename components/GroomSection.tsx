@@ -31,7 +31,7 @@ const GroomSection: React.FC<GroomSectionProps> = ({
         className="absolute inset-0"
       >
         <Image
-          src="/andri.JPG"
+          src="/7.png"
           alt="groom"
           fill
           className="object-cover"

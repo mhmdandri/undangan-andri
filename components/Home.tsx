@@ -142,17 +142,6 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
           loading ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        {/* <video
-          className="absolute inset-0 h-full w-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          poster="/media/vid1.png"
-        >
-          <source src="/media/vid1.mp4" type="video/mp4" />
-        </video> */}
         <motion.div
           initial={{ opacity: 0, scale: 1.06 }}
           whileInView={{ opacity: 1, scale: 1 }}

@@ -3,7 +3,6 @@ import React from "react";
 import FooterNav from "./FooterNav";
 import { motion } from "motion/react";
 import LazyBackgroundVideo from "./LazyBackgroundVideo";
-
 type EventSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
   onNext: () => void;
@@ -19,10 +18,13 @@ const EventSection: React.FC<EventSectionProps> = ({
     <section
       ref={verseRef}
       id="event"
-      className="relative h-dvh w-full text-white"
+      className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background image */}
-      <LazyBackgroundVideo src="/media/vid2.mp4" />
+      <LazyBackgroundVideo
+        src="/media/4.mp4"
+        className="absolute inset-0 h-full w-full object-cover object-[1%_center]"
+      />
 
       {/* Overlay gelap */}
       <div className="absolute inset-0 bg-black/45" />
@@ -42,7 +44,7 @@ const EventSection: React.FC<EventSectionProps> = ({
         className="relative z-10 px-6 pt-10 max-w-xl space-y-4 text-white/90"
       >
         <motion.div
-          className="space-y-2"
+          className="space-y-2 mt-15"
           variants={{
             hidden: { opacity: 0, y: 10 },
             show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -59,7 +61,7 @@ const EventSection: React.FC<EventSectionProps> = ({
           </motion.p>
 
           <motion.h1
-            className="font-playfair text-4xl md:text-5xl leading-tight tracking-wide"
+            className="font-playfair text-4xl md:text-4xl leading-tight tracking-wide"
             variants={{
               hidden: { opacity: 0, y: 12, scale: 0.996 },
               show: {
@@ -88,7 +90,7 @@ const EventSection: React.FC<EventSectionProps> = ({
           style={{ transformOrigin: "left center" }}
         />
         <motion.div
-          className="space-y-2 font-playfair"
+          className="space-y-2 font-playfair mt-20"
           variants={{
             hidden: { opacity: 0 },
             show: { opacity: 1, transition: { staggerChildren: 0.08 } },
