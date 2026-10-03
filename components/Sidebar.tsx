@@ -12,6 +12,7 @@ import {
   BsChatDots,
   BsImages,
   BsFillTelephoneFill,
+  BsCheck2Circle,
 } from "react-icons/bs";
 
 type LinkItem = {
@@ -42,6 +43,12 @@ const defaultLinks: LinkItem[] = [
   },
   { id: "gallery", label: "Gallery", href: "#gallery", icon: <BsImages /> },
   { id: "wishes", label: "Wishes", href: "#comments", icon: <BsChatDots /> },
+  {
+    id: "checkin",
+    label: "Check-in Tamu",
+    href: "/reservations",
+    icon: <BsCheck2Circle />,
+  },
 ];
 
 const container: Variants = {
@@ -178,6 +185,9 @@ export default function Sidebar({
                             if (l.onClick) {
                               e.preventDefault();
                               l.onClick();
+                            } else if (l.href?.startsWith("/")) {
+                              // Direct page link (e.g. /reservations)
+                              onClose();
                             } else {
                               // default: scroll to anchor if exists
                               const target = document.querySelector(
@@ -189,6 +199,10 @@ export default function Sidebar({
                                   behavior: "smooth",
                                   block: "start",
                                 });
+                                onClose();
+                              } else if (l.href?.startsWith("#")) {
+                                e.preventDefault();
+                                window.location.href = `/guest${l.href}`;
                                 onClose();
                               }
                             }

@@ -3,6 +3,9 @@ import BackgroundMusic from "@/components/Music";
 import React from "react";
 import type { Metadata } from "next";
 
+import { redirect } from "next/navigation";
+import { getReservationByCode } from "@/utils/reservation";
+
 type Wish = {
   name: string;
   message: string;
@@ -10,6 +13,9 @@ type Wish = {
 };
 type PageProps = {
   name: string;
+};
+type SearchParams = {
+  [key: string]: string | string[] | undefined;
 };
 
 async function getComments(): Promise<Wish[]> {
@@ -39,12 +45,28 @@ function capitalizeWords(value: string): string {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<PageProps>;
+  searchParams?: Promise<SearchParams>;
 }): Promise<Metadata> {
   const { name } = await params;
-  const decodedName = decodeURIComponent((name || "").replace(/\+/g, " "));
-  const displayName = capitalizeWords(decodedName || "Tamu Undangan");
+  const query = searchParams ? await searchParams : undefined;
+  const rawCode = query?.code;
+  const code = Array.isArray(rawCode) ? rawCode[0] : rawCode;
+
+  let displayName = "";
+  if (code && typeof code === "string" && code.trim()) {
+    const reservation = await getReservationByCode(code.trim());
+    if (reservation?.name) {
+      displayName = capitalizeWords(reservation.name);
+    }
+  }
+
+  if (!displayName) {
+    const decodedName = decodeURIComponent((name || "").replace(/\+/g, " "));
+    displayName = capitalizeWords(decodedName || "Tamu Undangan");
+  }
 
   const title = "The Wedding Of Andri & Cica";
   const description = `Kepada Yth. ${displayName}, kami mengundang Anda untuk merayakan hari pernikahan kami pada Sabtu, 21 November 2026.`;
@@ -79,10 +101,29 @@ export async function generateMetadata({
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<PageProps>;
+  searchParams?: Promise<SearchParams>;
 }) {
   const { name } = await params;
+  const query = searchParams ? await searchParams : undefined;
+  const rawCode = query?.code;
+  const code = Array.isArray(rawCode) ? rawCode[0] : rawCode;
+
+  if (code && typeof code === "string" && code.trim()) {
+    const reservation = await getReservationByCode(code.trim());
+    if (reservation?.name) {
+      const decodedCurrentName = decodeURIComponent((name || "").replace(/\+/g, " "));
+      if (
+        decodedCurrentName.toLowerCase() === "guest" ||
+        decodedCurrentName.toLowerCase() !== reservation.name.toLowerCase()
+      ) {
+        redirect(`/${encodeURIComponent(reservation.name)}`);
+      }
+    }
+  }
+
   const commentData = await getComments();
   const decodedName = decodeURIComponent(name.replace(/\+/g, " "));
   const displayName = capitalizeWords(decodedName || "Guest");

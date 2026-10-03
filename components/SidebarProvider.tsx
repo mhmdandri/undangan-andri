@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar"; // asumsi Sidebar sudah kamu tambahkan
 import { RxHamburgerMenu } from "react-icons/rx";
 import { motion, AnimatePresence } from "motion/react";
+import { usePathname } from "next/navigation";
 
 export default function SidebarProvider() {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true); // state untuk mengontrol visibilitas sidebar
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,6 +23,11 @@ export default function SidebarProvider() {
       window.removeEventListener("modal-open-change", handleModalToggle);
     };
   }, []);
+
+  // Jangan tampilkan sidebar pada halaman reservasi check-in
+  if (pathname?.startsWith("/reservations")) {
+    return null;
+  }
 
   return (
     <>
