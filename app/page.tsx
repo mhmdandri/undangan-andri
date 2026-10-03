@@ -76,5 +76,5 @@ export default async function Home({
     }
   }
 
-  redirect("/reservations");
+  redirect("/guest");
 }
