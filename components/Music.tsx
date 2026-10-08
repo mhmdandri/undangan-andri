@@ -6,30 +6,38 @@ export default function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const handleFirstInteraction = () => {
-      if (!audioRef.current) {
-        const audio = new Audio("/music.mp3");
-        audio.loop = true;
-        audio.playbackRate = 0.85;
-        audioRef.current = audio;
-      }
-      audioRef.current.play().catch(() => {});
-      cleanup();
+    const audio = new Audio("/music.mp3");
+    audio.loop = true;
+    audio.preload = "auto";
+    audio.playbackRate = 0.85;
+    audioRef.current = audio;
+
+    const startMusic = () => {
+      audio.currentTime = 2;
+      audio.play().then(cleanup).catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "NotAllowedError") {
+          return;
+        }
+        console.error("Failed to start background music", error);
+      });
     };
 
     const cleanup = () => {
-      window.removeEventListener("click", handleFirstInteraction);
-      window.removeEventListener("touchstart", handleFirstInteraction);
+      window.removeEventListener("click", startMusic);
+      window.removeEventListener("touchstart", startMusic);
+      window.removeEventListener("keydown", startMusic);
     };
 
-    window.addEventListener("click", handleFirstInteraction, { passive: true });
-    window.addEventListener("touchstart", handleFirstInteraction, { passive: true });
+    window.addEventListener("click", startMusic, { passive: true });
+    window.addEventListener("touchstart", startMusic, { passive: true });
+    window.addEventListener("keydown", startMusic, { passive: true });
+
+    startMusic();
 
     return () => {
       cleanup();
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      audio.pause();
+      audioRef.current = null;
     };
   }, []);
 
