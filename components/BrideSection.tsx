@@ -97,7 +97,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
                 show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
               }}
             >
-              Putra ke 1 dari 3
+              Putri ke 1 dari 3
             </motion.p>
 
             <motion.div
@@ -130,7 +130,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
           </motion.p>
 
           <motion.a
-            href="https://instagram.com/ULINNUHA42"
+            href="https://instagram.com/cicapurwanti"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm backdrop-blur-sm hover:bg-white/20 transition"
