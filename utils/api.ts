@@ -8,7 +8,7 @@
 
 export const getPublicApiUrl = (): string => {
   return (
-    process.env.NEXT_PUBLIC_API_URL || "https://api.mohaproject.tech"
+    process.env.NEXT_PUBLIC_API_URL || "https://api.weddingofandricica.me"
   ).replace(/\/+$/, "");
 };
 

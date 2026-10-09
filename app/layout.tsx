@@ -26,7 +26,7 @@ const inter = Inter({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-  : new URL("https://andricica.mohaproject.tech");
+  : new URL("https://weddingofandricica.me");
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
