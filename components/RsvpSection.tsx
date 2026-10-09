@@ -12,6 +12,8 @@ type RsvpSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
   onNext: () => void;
   onPrev: () => void;
+  guestCode?: string;
+  defaultGuestName?: string;
 };
 type RsvpFormData = {
   name: string;
@@ -29,21 +31,72 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
   verseRef,
   onNext,
   onPrev,
+  guestCode,
+  defaultGuestName,
 }) => {
   const [attendance, setAttendance] = useState<"hadir" | "tidak" | "">("hadir");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(
+    defaultGuestName &&
+      defaultGuestName.toLowerCase() !== "guest" &&
+      defaultGuestName.toLowerCase() !== "tamu undangan"
+      ? defaultGuestName
+      : ""
+  );
   const [email, setEmail] = useState("");
   const [guests, setGuests] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showModal, setShowModal] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
-  const [code, setCode] = useState<string>("");
+  const [code, setCode] = useState<string>(guestCode || "");
   const [isPresent, setIsPreset] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (
+      defaultGuestName &&
+      !name &&
+      defaultGuestName.toLowerCase() !== "guest" &&
+      defaultGuestName.toLowerCase() !== "tamu undangan"
+    ) {
+      setName(defaultGuestName);
+    }
+  }, [defaultGuestName, name]);
+
+  React.useEffect(() => {
+    if (!guestCode) return;
+    const fetchGuestDetails = async () => {
+      try {
+        const apiUrl = getPublicApiUrl();
+        const res = await fetch(
+          `${apiUrl}/api/reservations/check-in/${encodeURIComponent(guestCode)}`
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        const g = json?.data;
+        if (g) {
+          if (g.name) setName(g.name);
+          if (g.email) setEmail(g.email);
+          if (g.total_guests) setGuests(String(g.total_guests));
+          if (typeof g.is_present === "boolean") {
+            setAttendance(g.is_present ? "hadir" : "tidak");
+          }
+        }
+      } catch {
+        // ignore error prefill
+      }
+    };
+    fetchGuestDetails();
+  }, [guestCode]);
+
   const fetchData = async (payload: RsvpFormData) => {
     setIsLoading(true);
     setErrorMessage("");
-    if (!name.trim() || !email.trim()) {
+    if (!name.trim()) {
+      setErrorMessage("Nama tidak boleh kosong");
+      setIsLoading(false);
+      return;
+    }
+    if (!guestCode && !email.trim()) {
       setErrorMessage("Nama dan email tidak boleh kosong");
       setIsLoading(false);
       return;
@@ -153,23 +206,59 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
           <div className="flex flex-col space-y-4">
             {isPresent ? (
               <>
-                <div className="flex items-start">
-                  <h1>Simpan kode reservasi ini ya!</h1>
+                <div className="text-center">
+                  <h3 className="text-base font-semibold text-white">
+                    Tiket Check-in Masuk
+                  </h3>
+                  <p className="text-xs text-white/70 mt-1">
+                    Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi acara
+                  </p>
                 </div>
-                <div className="p-4 bg-white/10 border border-white/20 rounded-lg text-center flex flex-col items-center space-y-3">
+
+                {/* QR Code Container */}
+                <div className="bg-white p-3 rounded-2xl border-2 border-amber-400 shadow-xl max-w-[200px] mx-auto flex flex-col items-center">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(
+                      `https://weddingofandricica.me?code=${reservationCode}`
+                    )}`}
+                    alt={`QR Code Tiket ${reservationCode}`}
+                    className="w-40 h-40 object-contain mx-auto"
+                  />
+                </div>
+
+                <div className="p-3 bg-white/10 border border-white/20 rounded-xl text-center flex flex-col items-center space-y-1">
+                  <span className="text-[10px] text-amber-300 font-medium tracking-wider uppercase">
+                    KODE RESERVASI
+                  </span>
                   <div className="flex gap-3 items-center justify-center">
-                    <span className="font-mono text-xl text-white/95 select-all">
+                    <span className="font-mono text-2xl font-bold text-amber-200 tracking-widest select-all">
                       {reservationCode}
                     </span>
-                    <button onClick={handleCopy} className="self-center">
+                    <button
+                      onClick={handleCopy}
+                      className="p-1 rounded hover:bg-white/10 text-white/90 transition"
+                      title="Salin Kode"
+                    >
                       {copied ? (
-                        <LuCopyCheck className="w-5 h-5" />
+                        <LuCopyCheck className="w-5 h-5 text-emerald-400" />
                       ) : (
                         <LuCopy className="w-5 h-5" />
                       )}
                     </button>
                   </div>
                 </div>
+
+                <a
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=15&data=${encodeURIComponent(
+                    `https://weddingofandricica.me?code=${reservationCode}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={`QR_Checkin_${reservationCode}.png`}
+                  className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center transition shadow-md"
+                >
+                  Simpan / Unduh Gambar QR Code
+                </a>
               </>
             ) : (
               <div className="flex flex-col items-start">
@@ -236,11 +325,12 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
             onSubmit={(e) => {
               e.preventDefault();
               const is_present = attendance === "hadir";
-              const payload = {
+              const payload: RsvpFormData = {
                 name: name?.trim(),
                 email: email?.trim(),
                 is_present,
-                total_guests: Number(guests) || 0,
+                total_guests: Number(guests) || 1,
+                ...(guestCode ? { code: guestCode } : {}),
               };
               fetchData(payload);
             }}

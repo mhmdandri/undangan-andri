@@ -72,7 +72,7 @@ export default async function Home({
   if (code && typeof code === "string" && code.trim()) {
     const reservation = await getReservationByCode(code.trim());
     if (reservation?.name) {
-      redirect(`/${encodeURIComponent(reservation.name)}`);
+      redirect(`/${encodeURIComponent(reservation.name)}?code=${encodeURIComponent(code.trim())}`);
     }
   }
 

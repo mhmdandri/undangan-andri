@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -485,9 +486,13 @@ export default function ReservationCheckIn() {
             {soundEnabled ? <BsVolumeUp /> : <BsVolumeMute className="text-white/40" />}
           </button>
 
-          <div className="flex items-center gap-1 text-[10px] text-amber-200/90 font-medium tracking-wider uppercase bg-amber-500/10 border border-amber-400/25 px-2.5 py-1 rounded-full backdrop-blur-sm">
-            <span>Reception Desk</span>
-          </div>
+          <Link
+            href="/admin"
+            className="flex items-center gap-1 text-[10px] text-amber-200/90 hover:text-white font-medium tracking-wider uppercase bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/25 px-2.5 py-1 rounded-full backdrop-blur-sm transition"
+            title="Buka Dashboard Import & Daftar Tamu"
+          >
+            <span>Admin / Import</span>
+          </Link>
         </div>
       </header>
 

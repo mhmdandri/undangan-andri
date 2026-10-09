@@ -132,7 +132,7 @@ export default async function Page({
         decodedCurrentName.toLowerCase() === "guest" ||
         decodedCurrentName.toLowerCase() !== reservation.name.toLowerCase()
       ) {
-        redirect(`/${encodeURIComponent(reservation.name)}`);
+        redirect(`/${encodeURIComponent(reservation.name)}?code=${encodeURIComponent(code.trim())}`);
       }
     }
   }
@@ -145,7 +145,11 @@ export default async function Page({
     <main className="h-dvh flex justify-center max-w-sm mx-auto">
       <BackgroundMusic />
       <div className="max-w-sm">
-        <HomePage guestName={displayName} data={commentData} />
+        <HomePage
+          guestName={displayName}
+          data={commentData}
+          code={typeof code === "string" ? code.trim() : undefined}
+        />
       </div>
     </main>
   );

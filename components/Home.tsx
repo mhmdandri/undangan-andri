@@ -28,9 +28,10 @@ type Wish = {
 type HomePageProps = {
   guestName?: string;
   data?: Wish[];
+  code?: string;
 };
 
-const HomePage = ({ guestName, data }: HomePageProps) => {
+const HomePage = ({ guestName, data, code }: HomePageProps) => {
   const [comments, setComments] = useState<Wish[]>(data ?? []);
   const refreshComments = useCallback(async () => {
     try {
@@ -338,6 +339,8 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
         verseRef={rsvpRef}
         onNext={handleGaleryScrollDown}
         onPrev={handleListCommentScrollDown}
+        guestCode={code}
+        defaultGuestName={guestName}
       />
       <GallerySection
         verseRef={galeryRef}
