@@ -12,7 +12,9 @@ import {
   BsChatDots,
   BsImages,
   BsFillTelephoneFill,
+  BsPeople,
 } from "react-icons/bs";
+import { useRouter } from "next/navigation";
 
 type LinkItem = {
   id: string;
@@ -42,6 +44,12 @@ const defaultLinks: LinkItem[] = [
   },
   { id: "gallery", label: "Gallery", href: "#gallery", icon: <BsImages /> },
   { id: "wishes", label: "Wishes", href: "#comments", icon: <BsChatDots /> },
+  {
+    id: "list-guest",
+    label: "Daftar Tamu",
+    href: "/list-guest",
+    icon: <BsPeople />,
+  },
 ];
 
 const container: Variants = {
@@ -74,6 +82,7 @@ export default function Sidebar({
   links = defaultLinks,
   thumbUrl,
 }: SidebarProps) {
+  const router = useRouter();
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // default thumbnail path (uploaded file). The environment will transform this path to a URL.
@@ -179,7 +188,9 @@ export default function Sidebar({
                               e.preventDefault();
                               l.onClick();
                             } else if (l.href?.startsWith("/")) {
-                              // Direct page link (e.g. /reservations)
+                              // Direct page link (e.g. /list-guest)
+                              e.preventDefault();
+                              router.push(l.href);
                               onClose();
                             } else {
                               // default: scroll to anchor if exists

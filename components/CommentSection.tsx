@@ -32,16 +32,33 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   onSubmitSuccess,
   guestName,
 }) => {
-  const [name, setName] = useState(guestName || "");
+  const [name, setName] = useState(
+    guestName &&
+      guestName.toLowerCase() !== "guest" &&
+      guestName.toLowerCase() !== "tamu undangan"
+      ? guestName
+      : ""
+  );
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [responseMessage, setResponseMessage] = useState("");
+  React.useEffect(() => {
+    if (
+      guestName &&
+      !name &&
+      guestName.toLowerCase() !== "guest" &&
+      guestName.toLowerCase() !== "tamu undangan"
+    ) {
+      setName(guestName);
+    }
+  }, [guestName, name]);
+
   const fetchData = async () => {
     setErrorMessage("");
     setResponseMessage("");
     if (!name.trim() || !message.trim()) {
-      setErrorMessage("Nama dan pesan tidak boleh kosong");
+      setErrorMessage("Nama dan pesan ucapan tidak boleh kosong");
       return;
     }
     setIsLoading(true);
@@ -53,7 +70,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ name, message }),
+        body: JSON.stringify({ name: name.trim(), message: message.trim() }),
       });
       let data: CommentResponse | undefined;
       try {
@@ -71,18 +88,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 .flat()
                 .join(", ")
             : null);
-        throw new Error(backendError || "Failed to submit comment");
+        throw new Error(backendError || "Gagal mengirim ucapan & doa");
       }
-      toast.success(data?.message || "Comment submitted successfully");
-      setResponseMessage("Ucapan sudah terkirim, cek di halaman selanjutnya!");
+      toast.success(
+        data?.message ||
+          "Ucapan dan doa restu berhasil dikirim! Terima kasih.",
+      );
+      setResponseMessage("Ucapan dan doa restu Anda sudah terkirim!");
       onSubmitSuccess?.();
-      setName(guestName || "");
       setMessage("");
     } catch (error) {
       if (error instanceof Error) {
-        setErrorMessage(error.message || "Failed to submit comment");
+        setErrorMessage(error.message || "Gagal mengirim ucapan & doa");
       } else {
-        setErrorMessage(String(error) || "Failed to submit comment");
+        setErrorMessage(String(error) || "Gagal mengirim ucapan & doa");
       }
     } finally {
       setIsLoading(false);
@@ -111,8 +130,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         />
       </motion.div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/45" />
+      {/* Overlay: Lebih transparan agar foto pengantin tetap terlihat jelas */}
+      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/15 to-black/45" />
 
       {/* CONTENT */}
       <motion.div
@@ -127,41 +146,74 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             transition: { when: "beforeChildren", staggerChildren: 0.08 },
           },
         }}
-        className="relative z-10 flex items-center"
+        className="relative z-10 flex min-h-dvh items-center"
       >
-        <div className="mx-auto w-full max-w-md px-6 py-20 text-center">
-          <motion.h2
-            className="font-playfair text-3xl md:text-4xl font-semibold mb-4 text-white/95"
+        <motion.div
+          className="mx-auto w-full max-w-md px-6 py-6 sm:py-7 text-center bg-black/20 border border-white/15 rounded-3xl backdrop-blur-[2px] shadow-2xl"
+          variants={{
+            hidden: {},
+            show: { transition: { staggerChildren: 0.06 } },
+          }}
+        >
+          {/* Eyebrow badge */}
+          <motion.span
+            className="inline-block text-[11px] sm:text-xs tracking-[0.25em] uppercase text-amber-300/90 font-medium font-sans mb-1"
             variants={{
-              hidden: { opacity: 0, y: 10, scale: 0.995 },
+              hidden: { opacity: 0, y: -4 },
+              show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+            }}
+          >
+            W I S H E S &amp; P R A Y E R S
+          </motion.span>
+
+          {/* Judul Ucapan & Doa */}
+          <motion.h2
+            className="font-playfair text-2xl sm:text-3xl md:text-4xl font-normal tracking-wide text-white drop-shadow-md mb-2"
+            variants={{
+              hidden: { opacity: 0, y: 8, scale: 0.996 },
               show: {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                transition: { duration: 0.7, ease: [0.2, 0.8, 0.2, 1] },
+                transition: { duration: 0.65 },
               },
             }}
           >
-            Leave Your Wishes
+            Kirim Ucapan &amp; Doa
           </motion.h2>
 
+          {/* Ornamen Garis Pembatas */}
+          <motion.div
+            className="flex items-center justify-center gap-2.5 mb-3 text-amber-200/60"
+            variants={{
+              hidden: { opacity: 0, scale: 0.8 },
+              show: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+            }}
+            aria-hidden="true"
+          >
+            <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+          </motion.div>
+
           <motion.p
-            className="text-sm mb-6 text-white/80 leading-relaxed"
+            className="text-xs sm:text-sm mb-4 text-white/80 leading-relaxed max-w-sm mx-auto"
             variants={{
               hidden: { opacity: 0, y: 8 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
             }}
           >
-            We would love to hear your thoughts and wishes for our special day.
-            Please leave a comment below!
+            Berikan doa restu dan ucapan selamat terbaik Anda untuk mengawali
+            perjalanan cinta Andri &amp; Cica.
           </motion.p>
+
           <motion.form
             onSubmit={(e) => {
               e.preventDefault();
               fetchData();
             }}
-            className="space-y-3"
-            aria-label="Leave Your Wishes Form"
+            className="space-y-3.5 text-left"
+            aria-label="Formulir Ucapan dan Doa Restu"
             variants={{
               hidden: {},
               show: {
@@ -177,21 +229,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               }}
             >
               <label htmlFor="wish-name" className="sr-only">
-                Your name
+                Nama Anda
               </label>
               <motion.input
                 id="wish-name"
                 type="text"
                 name="name"
-                placeholder="Your name..."
+                placeholder="Nama lengkap Anda..."
                 onChange={(e) => setName(e.target.value)}
                 value={name}
-                className="w-full h-11 px-4 rounded-lg bg-white/6 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition"
+                className="w-full h-11 px-4 rounded-xl bg-white/6 border border-white/15 text-sm text-white placeholder-white/45
+                     focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-300/60 transition"
                 autoComplete="name"
                 whileFocus={{ scale: 1.01 }}
-                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                transition={{ type: "spring", stiffness: 260, damping: 22 }}
               />
             </motion.div>
+
+            {/* Pesan */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, y: 8 },
@@ -199,23 +254,25 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               }}
             >
               <label htmlFor="wish-message" className="sr-only">
-                Your message
+                Pesan Ucapan &amp; Doa
               </label>
               <motion.textarea
                 id="wish-message"
-                rows={5}
+                rows={3}
                 name="message"
-                placeholder="Your message..."
+                placeholder="Tuliskan ucapan dan doa restu terbaik Anda..."
                 onChange={(e) => setMessage(e.target.value)}
                 value={message}
-                className="w-full px-4 py-3 rounded-lg bg-white/6 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-white/6 border border-white/15 text-sm text-white placeholder-white/45
+                     focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-300/60 transition resize-none"
                 whileFocus={{ scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
               />
             </motion.div>
+
             <motion.div
               aria-live="polite"
-              className="min-h-5 text-sm text-white/80"
+              className="min-h-5 text-xs text-white/80 text-center"
               variants={{
                 hidden: { opacity: 0, y: 6 },
                 show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
@@ -227,16 +284,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   className={`${
                     errorMessage
-                      ? "text-red-400 bg-red-300/10"
-                      : "text-emerald-300 bg-emerald-300/10"
-                  } font-inter py-2 px-4 rounded-md w-fit mx-auto`}
+                      ? "text-red-300 bg-red-400/15 border border-red-400/25"
+                      : "text-emerald-300 bg-emerald-400/15 border border-emerald-400/25"
+                  } font-inter py-1.5 px-3.5 rounded-lg w-fit mx-auto text-xs`}
                 >
                   {errorMessage || responseMessage}
                 </motion.p>
               ) : null}
             </motion.div>
+
             <motion.div
-              className="flex items-center justify-center gap-3"
+              className="flex items-center justify-center pt-1"
               variants={{
                 hidden: { opacity: 0, y: 8 },
                 show: { opacity: 1, y: 0 },
@@ -245,16 +303,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               <motion.button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex items-center justify-center gap-3 px-6 py-2 rounded-full text-sm font-semibold tracking-wide transition
-                     bg-white/12 hover:bg-white/25 disabled:opacity-60 disabled:cursor-not-allowed"
-                whileHover={{ scale: isLoading ? 1 : 1.03 }}
-                whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                className="w-full inline-flex items-center justify-center gap-2.5 h-11 px-8 rounded-xl text-sm font-semibold tracking-wide transition
+                     bg-amber-400 hover:bg-amber-300 text-stone-900 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-amber-400/20"
+                whileHover={{ scale: isLoading ? 1 : 1.01 }}
+                whileTap={{ scale: isLoading ? 1 : 0.99 }}
                 transition={{ type: "spring", stiffness: 300, damping: 22 }}
               >
                 {isLoading ? (
                   <>
                     <svg
-                      className="h-4 w-4 animate-spin"
+                      className="h-4 w-4 animate-spin text-stone-900"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -274,15 +332,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                       ></path>
                     </svg>
-                    Submitting...
+                    <span>Mengirim ucapan...</span>
                   </>
                 ) : (
-                  "Submit"
+                  <span>Kirim Ucapan &amp; Doa</span>
                 )}
               </motion.button>
             </motion.div>
           </motion.form>
-        </div>
+        </motion.div>
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 16 }}

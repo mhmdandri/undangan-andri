@@ -647,73 +647,82 @@ Salam hangat,
     <div className="min-h-screen w-full bg-[#08090d] text-slate-100 font-sans pb-36 selection:bg-amber-500/30 selection:text-amber-200 overflow-x-hidden overflow-y-auto">
       {/* Top Navbar */}
       <header className="border-b border-white/10 bg-[#0d1017]/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
             <Link
               href="/reservations"
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition shrink-0"
               title="Ke Halaman Check-in Scanner"
             >
-              <LuArrowLeft className="w-5 h-5" />
+              <LuArrowLeft className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
             </Link>
-            <div>
-              <h1 className="font-playfair text-lg sm:text-xl font-bold bg-linear-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent">
-                VIP Guest Manager & Excel Importer
+            <div className="min-w-0">
+              <h1 className="font-playfair text-sm sm:text-lg font-bold bg-linear-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent truncate">
+                Admin Guest Manager
               </h1>
-              <p className="text-xs text-slate-400">
-                The Wedding of Andri & Cica
+              <p className="text-[11px] text-slate-400 truncate">
+                The Wedding of Andri &amp; Cica
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
+            <Link
+              href="/list-guest"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition"
+              title="Lihat Halaman Publik Daftar Tamu"
+            >
+              <LuExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Daftar Tamu</span>
+            </Link>
             <Link
               href="/reservations"
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 transition"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 transition"
+              title="Ke Halaman Scanner Check-in"
             >
-              <LuQrCode className="w-4 h-4" />
-              Scanner Check-in
+              <LuQrCode className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Scanner Check-in</span>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-5 sm:pt-8">
         {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-          <div className="flex space-x-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-white/10 pb-4 mb-6">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveTab("import")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition ${
                 activeTab === "import"
                   ? "bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20"
                   : "bg-white/5 text-slate-300 hover:bg-white/10"
               }`}
             >
               <LuFileSpreadsheet className="w-4 h-4" />
-              Import Excel & Sebar Link
+              <span>Import Excel</span>
             </button>
             <button
               onClick={() => setActiveTab("database")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition ${
                 activeTab === "database"
                   ? "bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20"
                   : "bg-white/5 text-slate-300 hover:bg-white/10"
               }`}
             >
               <LuCircleCheck className="w-4 h-4" />
-              Semua Tamu ({dbGuests.length})
+              <span>Semua Tamu ({dbGuests.length})</span>
             </button>
           </div>
 
           {activeTab === "import" && (
             <button
               onClick={handleDownloadTemplate}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 text-amber-300 hover:text-amber-200 transition"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 text-amber-300 hover:text-amber-200 transition"
             >
               <LuDownload className="w-4 h-4" />
-              Unduh Template Excel
+              <span>Unduh Template Excel</span>
             </button>
           )}
         </div>
@@ -951,8 +960,92 @@ Salam hangat,
                   </button>
                 </div>
 
-                {/* Table Hasil Import */}
-                <div className="overflow-x-auto">
+                {/* Mobile Card View (< md) */}
+                <div className="md:hidden space-y-3">
+                  {importedResult.map((guest, idx) => {
+                    const inviteUrl =
+                      guest.invite_url ||
+                      `https://weddingofandricica.me?code=${guest.code}`;
+                    return (
+                      <div
+                        key={guest.code || idx}
+                        className="bg-black/40 border border-emerald-500/20 rounded-2xl p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500 font-mono text-xs">
+                                #{idx + 1}
+                              </span>
+                              <h4 className="font-semibold text-white text-base leading-snug">
+                                {guest.name}
+                              </h4>
+                            </div>
+                            <span className="text-[11px] text-slate-400">
+                              Jatah: {guest.quota_guests || 2} Pax
+                            </span>
+                          </div>
+
+                          <span className="font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-xs tracking-wider shrink-0">
+                            {guest.code}
+                          </span>
+                        </div>
+
+                        {guest.phone && (
+                          <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                            <span>WA:</span>
+                            <span className="text-slate-200">{guest.phone}</span>
+                          </div>
+                        )}
+
+                        <div className="pt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedQrGuest(guest)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-medium transition cursor-pointer"
+                          >
+                            <LuQrCode className="w-3.5 h-3.5" />
+                            <span>Lihat QR</span>
+                          </button>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleCopy(inviteUrl, guest.code)}
+                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
+                              title="Salin Link"
+                            >
+                              {copiedCode === guest.code ? (
+                                <LuCheck className="w-4 h-4 text-emerald-400" />
+                              ) : (
+                                <LuCopy className="w-4 h-4" />
+                              )}
+                            </button>
+
+                            {guest.phone ? (
+                              <a
+                                href={generateWaLink(
+                                  guest.phone,
+                                  guest.name,
+                                  guest.code,
+                                  inviteUrl,
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition"
+                              >
+                                <FaWhatsapp className="w-4 h-4" />
+                                <span>Kirim WA</span>
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop Table View (>= md) */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
                       <tr className="border-b border-white/10 text-slate-400 font-medium">
@@ -1101,7 +1194,7 @@ Salam hangat,
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-3.5 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-xl">
               <div className="relative flex-1">
                 <LuSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -1109,25 +1202,25 @@ Salam hangat,
                   placeholder="Cari nama, kode reservasi, atau no WA..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={filterSource}
                   onChange={(e) => setFilterSource(e.target.value)}
-                  className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-400"
+                  className="flex-1 sm:flex-none bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-400"
                 >
                   <option value="all">Semua Jalur</option>
-                  <option value="pre_registered">VIP (Pre-registered)</option>
-                  <option value="self_registered">Mandiri (Self RSVP)</option>
+                  <option value="pre_registered">VIP (Pre-reg)</option>
+                  <option value="self_registered">Mandiri (RSVP)</option>
                 </select>
 
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-400"
+                  className="flex-1 sm:flex-none bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-400"
                 >
                   <option value="all">Semua Kehadiran</option>
                   <option value="hadir">Sudah Hadir</option>
@@ -1137,188 +1230,318 @@ Salam hangat,
                 <button
                   onClick={fetchDbGuests}
                   disabled={isLoadingDb}
-                  className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition"
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition shrink-0"
                   title="Refresh Data"
                 >
                   <LuRefreshCw
-                    className={`w-4 h-4 ${isLoadingDb ? "animate-spin" : ""}`}
+                    className={`w-4 h-4 ${isLoadingDb ? "animate-spin text-amber-400" : ""}`}
                   />
                 </button>
 
                 <button
                   onClick={() => handleExportResult(dbGuests)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition shrink-0"
                   title="Export Semua Tamu ke Excel"
                 >
                   <LuDownload className="w-4 h-4" />
-                  Export Excel
+                  <span>Export Excel</span>
                 </button>
               </div>
             </div>
 
-            {/* List Table Database */}
-            <div className="bg-[#0e111a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10 bg-white/2 text-slate-400 font-medium">
-                      <th className="py-3 px-4 w-12">#</th>
-                      <th className="py-3 px-4">Nama Tamu</th>
-                      <th className="py-3 px-4">Kode Tiket</th>
-                      <th className="py-3 px-4">Jalur</th>
-                      <th className="py-3 px-4">Kontak</th>
-                      <th className="py-3 px-4">Status Check-in</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {filteredDbGuests.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="py-12 text-center text-slate-500"
-                        >
-                          {isLoadingDb
-                            ? "Memuat data tamu..."
-                            : "Tidak ada data tamu yang cocok."}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredDbGuests.map((guest, idx) => {
-                        const inviteUrl = `https://weddingofandricica.me?code=${guest.code}`;
-                        const isCheckedIn =
-                          guest.is_present ||
-                          guest.status?.toLowerCase() === "hadir";
+            {/* List Tamu Database */}
+            {filteredDbGuests.length === 0 ? (
+              <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-10 text-center text-slate-500 shadow-xl">
+                {isLoadingDb
+                  ? "Memuat data tamu..."
+                  : "Tidak ada data tamu yang cocok."}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Mobile Card View (< md) */}
+                <div className="md:hidden space-y-3">
+                  {filteredDbGuests.map((guest, idx) => {
+                    const inviteUrl = `https://weddingofandricica.me?code=${guest.code}`;
+                    const isCheckedIn =
+                      guest.is_present ||
+                      guest.status?.toLowerCase() === "hadir";
 
-                        return (
-                          <tr
-                            key={guest.code || guest.id || idx}
-                            className="hover:bg-white/2 transition"
-                          >
-                            <td className="py-3 px-4 text-slate-500 font-mono text-xs">
-                              {idx + 1}
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="font-semibold text-white block">
+                    return (
+                      <div
+                        key={guest.code || guest.id || idx}
+                        className="bg-[#0e111a] border border-white/10 rounded-2xl p-4 shadow-lg space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500 font-mono text-xs">#{idx + 1}</span>
+                              <h3 className="font-semibold text-white text-base leading-snug">
                                 {guest.name}
-                              </span>
-                              <span className="text-[11px] text-slate-400">
-                                {guest.total_guests || guest.quota_guests || 1}{" "}
-                                pax
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-xs tracking-wider">
+                              </h3>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-[11px] tracking-wider">
                                 {guest.code}
                               </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              {guest.source === "pre_registered" ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/20">
-                                  VIP (Pre-reg)
-                                </span>
+                              <span className="text-[11px] text-slate-400">
+                                {guest.total_guests || guest.quota_guests || 1} Pax
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            {guest.source === "pre_registered" ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/20">
+                                VIP (Pre-reg)
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/20">
+                                Mandiri (RSVP)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Status Check-in & RSVP */}
+                        <div className="flex items-center justify-between text-xs pt-1 border-t border-white/5">
+                          <span className="text-slate-400">Status Check-in:</span>
+                          <div className="flex flex-col items-end">
+                            {isCheckedIn ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                                <LuCircleCheck className="w-3.5 h-3.5" />
+                                Sudah Hadir
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                                Belum Hadir
+                              </span>
+                            )}
+                            {guest.status === "konfirmasi_hadir" && !isCheckedIn && (
+                              <span className="text-[10px] text-amber-300 font-medium mt-0.5">
+                                (RSVP: Akan Hadir)
+                              </span>
+                            )}
+                            {guest.status === "tidak_datang" && (
+                              <span className="text-[10px] text-rose-400 font-medium mt-0.5">
+                                (RSVP: Tidak Hadir)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Kontak & Actions Toolbar */}
+                        <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
+                          <span className="text-slate-400 font-mono text-[11px] truncate max-w-[140px]">
+                            {guest.phone || guest.email || "-"}
+                          </span>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => handleCopy(inviteUrl, guest.code)}
+                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
+                              title="Salin Link Undangan"
+                            >
+                              {copiedCode === guest.code ? (
+                                <LuCheck className="w-4 h-4 text-emerald-400" />
                               ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/20">
-                                  Mandiri (RSVP)
-                                </span>
+                                <LuCopy className="w-4 h-4" />
                               )}
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="text-xs font-mono text-slate-300">
-                                {guest.phone || guest.email || "-"}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="flex flex-col items-start gap-1">
-                                {isCheckedIn ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                                    <LuCircleCheck className="w-3.5 h-3.5" />
-                                    Sudah Hadir
+                            </button>
+
+                            {guest.phone && (
+                              <a
+                                href={generateWaLink(
+                                  guest.phone,
+                                  guest.name,
+                                  guest.code,
+                                  inviteUrl,
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white transition"
+                                title="Kirim Pesan WhatsApp"
+                              >
+                                <FaWhatsapp className="w-4 h-4" />
+                              </a>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => setSelectedQrGuest(guest)}
+                              className="p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 hover:text-white transition cursor-pointer"
+                              title="Lihat & Download QR Code Tiket"
+                            >
+                              <LuQrCode className="w-4 h-4" />
+                            </button>
+
+                            <a
+                              href={`https://weddingofandricica.me?code=${guest.code}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
+                              title="Buka Undangan"
+                            >
+                              <LuExternalLink className="w-4 h-4" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop Table View (>= md) */}
+                <div className="hidden md:block bg-[#0e111a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/2 text-slate-400 font-medium">
+                          <th className="py-3 px-4 w-12">#</th>
+                          <th className="py-3 px-4">Nama Tamu</th>
+                          <th className="py-3 px-4">Kode Tiket</th>
+                          <th className="py-3 px-4">Jalur</th>
+                          <th className="py-3 px-4">Kontak</th>
+                          <th className="py-3 px-4">Status Check-in</th>
+                          <th className="py-3 px-4 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {filteredDbGuests.map((guest, idx) => {
+                          const inviteUrl = `https://weddingofandricica.me?code=${guest.code}`;
+                          const isCheckedIn =
+                            guest.is_present ||
+                            guest.status?.toLowerCase() === "hadir";
+
+                          return (
+                            <tr
+                              key={guest.code || guest.id || idx}
+                              className="hover:bg-white/2 transition"
+                            >
+                              <td className="py-3 px-4 text-slate-500 font-mono text-xs">
+                                {idx + 1}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="font-semibold text-white block">
+                                  {guest.name}
+                                </span>
+                                <span className="text-[11px] text-slate-400">
+                                  {guest.total_guests || guest.quota_guests || 1}{" "}
+                                  pax
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-xs tracking-wider">
+                                  {guest.code}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                {guest.source === "pre_registered" ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/20">
+                                    VIP (Pre-reg)
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                                    Belum Hadir
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/20">
+                                    Mandiri (RSVP)
                                   </span>
                                 )}
-
-                                {guest.status === "konfirmasi_hadir" && !isCheckedIn && (
-                                  <span className="text-[10px] text-amber-300 font-medium">
-                                    RSVP: Akan Hadir
-                                  </span>
-                                )}
-                                {guest.status === "tidak_datang" && (
-                                  <span className="text-[10px] text-rose-400 font-medium">
-                                    RSVP: Tidak Hadir
-                                  </span>
-                                )}
-                                {(!guest.status || guest.status === "belum_konfirmasi") && (
-                                  <span className="text-[10px] text-slate-500">
-                                    RSVP: Belum Konfirmasi
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="inline-flex items-center gap-1.5">
-                                <button
-                                  onClick={() =>
-                                    handleCopy(inviteUrl, guest.code)
-                                  }
-                                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
-                                  title="Salin Link Undangan"
-                                >
-                                  {copiedCode === guest.code ? (
-                                    <LuCheck className="w-4 h-4 text-emerald-400" />
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="text-xs font-mono text-slate-300">
+                                  {guest.phone || guest.email || "-"}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex flex-col items-start gap-1">
+                                  {isCheckedIn ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                                      <LuCircleCheck className="w-3.5 h-3.5" />
+                                      Sudah Hadir
+                                    </span>
                                   ) : (
-                                    <LuCopy className="w-4 h-4" />
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                                      Belum Hadir
+                                    </span>
                                   )}
-                                </button>
 
-                                {guest.phone && (
-                                  <a
-                                    href={generateWaLink(
-                                      guest.phone,
-                                      guest.name,
-                                      guest.code,
-                                      inviteUrl,
+                                  {guest.status === "konfirmasi_hadir" && !isCheckedIn && (
+                                    <span className="text-[10px] text-amber-300 font-medium">
+                                      RSVP: Akan Hadir
+                                    </span>
+                                  )}
+                                  {guest.status === "tidak_datang" && (
+                                    <span className="text-[10px] text-rose-400 font-medium">
+                                      RSVP: Tidak Hadir
+                                    </span>
+                                  )}
+                                  {(!guest.status || guest.status === "belum_konfirmasi") && (
+                                    <span className="text-[10px] text-slate-500">
+                                      RSVP: Belum Konfirmasi
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-right">
+                                <div className="inline-flex items-center gap-1.5">
+                                  <button
+                                    onClick={() =>
+                                      handleCopy(inviteUrl, guest.code)
+                                    }
+                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
+                                    title="Salin Link Undangan"
+                                  >
+                                    {copiedCode === guest.code ? (
+                                      <LuCheck className="w-4 h-4 text-emerald-400" />
+                                    ) : (
+                                      <LuCopy className="w-4 h-4" />
                                     )}
+                                  </button>
+
+                                  {guest.phone && (
+                                    <a
+                                      href={generateWaLink(
+                                        guest.phone,
+                                        guest.name,
+                                        guest.code,
+                                        inviteUrl,
+                                      )}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white transition"
+                                      title="Kirim Pesan WhatsApp"
+                                    >
+                                      <FaWhatsapp className="w-4 h-4" />
+                                    </a>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedQrGuest(guest)}
+                                    className="p-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 hover:text-white transition cursor-pointer"
+                                    title="Lihat & Download QR Code Tiket"
+                                  >
+                                    <LuQrCode className="w-4 h-4" />
+                                  </button>
+
+                                  <a
+                                    href={`https://weddingofandricica.me?code=${guest.code}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white transition"
-                                    title="Kirim Pesan WhatsApp"
+                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
+                                    title="Buka Undangan"
                                   >
-                                    <FaWhatsapp className="w-4 h-4" />
+                                    <LuExternalLink className="w-4 h-4" />
                                   </a>
-                                )}
-
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedQrGuest(guest)}
-                                  className="p-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 hover:text-white transition cursor-pointer"
-                                  title="Lihat & Download QR Code Tiket"
-                                >
-                                  <LuQrCode className="w-4 h-4" />
-                                </button>
-
-                                <a
-                                  href={`https://weddingofandricica.me?code=${guest.code}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
-                                  title="Buka Undangan"
-                                >
-                                  <LuExternalLink className="w-4 h-4" />
-                                </a>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </main>
@@ -1330,7 +1553,7 @@ Salam hangat,
           onClick={() => setSelectedQrGuest(null)}
         >
           <div
-            className="bg-[#12151f] border border-amber-500/30 rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl text-center relative animate-in fade-in zoom-in-95 duration-200"
+            className="bg-[#12151f] border border-amber-500/30 rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
