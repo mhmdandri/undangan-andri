@@ -7,6 +7,7 @@ import Modal from "./Modal";
 import { LuCopy, LuCopyCheck } from "react-icons/lu";
 import LazyBackgroundVideo from "./LazyBackgroundVideo";
 import { getPublicApiUrl } from "@/utils/api";
+import Image from "next/image";
 
 type RsvpSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -40,7 +41,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       defaultGuestName.toLowerCase() !== "guest" &&
       defaultGuestName.toLowerCase() !== "tamu undangan"
       ? defaultGuestName
-      : ""
+      : "",
   );
   const [email, setEmail] = useState("");
   const [guests, setGuests] = useState("");
@@ -68,7 +69,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       try {
         const apiUrl = getPublicApiUrl();
         const res = await fetch(
-          `${apiUrl}/api/reservations/check-in/${encodeURIComponent(guestCode)}`
+          `${apiUrl}/api/reservations/check-in/${encodeURIComponent(guestCode)}`,
         );
         if (!res.ok) return;
         const json = await res.json();
@@ -77,8 +78,10 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
           if (g.name) setName(g.name);
           if (g.email) setEmail(g.email);
           if (g.total_guests) setGuests(String(g.total_guests));
-          if (typeof g.is_present === "boolean") {
-            setAttendance(g.is_present ? "hadir" : "tidak");
+          if (g.status === "tidak_datang" || g.status === "tidak") {
+            setAttendance("tidak");
+          } else {
+            setAttendance("hadir");
           }
         }
       } catch {
@@ -126,17 +129,17 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 .flat()
                 .join(", ")
             : null);
-        throw new Error(backendError || "Failed to submit rsvp");
+        throw new Error(backendError || "Gagal mengirim konfirmasi kehadiran");
       }
-      toast.success("RSVP berhasil dikirim! Terima kasih.");
+      toast.success("Konfirmasi kehadiran berhasil dikirim! Terima kasih.");
       setCode(data?.data.code || "");
       setIsPreset(data?.data.is_present || false);
       setShowModal(true);
     } catch (error) {
       if (error instanceof Error) {
-        setErrorMessage(error.message || "Failed to submit rsvp");
+        setErrorMessage(error.message || "Gagal mengirim konfirmasi kehadiran");
       } else {
-        setErrorMessage(String(error) || "Failed to submit rsvp");
+        setErrorMessage(String(error) || "Gagal mengirim konfirmasi kehadiran");
       }
     } finally {
       setIsLoading(false);
@@ -201,7 +204,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
         <Modal
           open={showModal}
           onClose={() => setShowModal(false)}
-          title="Reservasi Berhasil!"
+          title="Konfirmasi Berhasil!"
         >
           <div className="flex flex-col space-y-4">
             {isPresent ? (
@@ -211,17 +214,21 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                     Tiket Check-in Masuk
                   </h3>
                   <p className="text-xs text-white/70 mt-1">
-                    Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi acara
+                    Tunjukkan QR Code ini kepada penerima tamu saat tiba di
+                    lokasi acara
                   </p>
                 </div>
 
                 {/* QR Code Container */}
                 <div className="bg-white p-3 rounded-2xl border-2 border-amber-400 shadow-xl max-w-[200px] mx-auto flex flex-col items-center">
-                  <img
+                  <Image
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(
-                      `https://weddingofandricica.me?code=${reservationCode}`
+                      `https://weddingofandricica.me?code=${reservationCode}`,
                     )}`}
                     alt={`QR Code Tiket ${reservationCode}`}
+                    width={220}
+                    height={220}
+                    unoptimized
                     className="w-40 h-40 object-contain mx-auto"
                   />
                 </div>
@@ -250,7 +257,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
 
                 <a
                   href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=15&data=${encodeURIComponent(
-                    `https://weddingofandricica.me?code=${reservationCode}`
+                    `https://weddingofandricica.me?code=${reservationCode}`,
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -261,9 +268,17 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 </a>
               </>
             ) : (
-              <div className="flex flex-col items-start">
-                <h1>Terima kasih atas konfirmasinya!</h1>
-                <p>Semoga bisa ketemu di lain kesempatan ya</p>
+              <div className="text-center py-4 space-y-3">
+                <div className="w-14 h-14 mx-auto rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-300 text-2xl shadow-inner">
+                  ♡
+                </div>
+                <h3 className="text-base font-semibold text-white">
+                  Terima Kasih atas Konfirmasinya
+                </h3>
+                <p className="text-xs text-white/75 leading-relaxed max-w-xs mx-auto">
+                  Doa dan restu Anda tetap sangat berarti bagi kami. Semoga di
+                  lain kesempatan kita dapat bersilaturahmi.
+                </p>
               </div>
             )}
           </div>
@@ -289,14 +304,26 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
         className="relative z-10 flex min-h-dvh items-center"
       >
         <motion.div
-          className="mx-auto w-full max-w-md px-6 py-8 md:py-24 text-center bg-black/30 rounded-2xl backdrop-blur-sm"
+          className="mx-auto w-full max-w-md px-6 py-7 sm:py-8 text-center bg-black/40 border border-white/15 rounded-3xl backdrop-blur-md shadow-2xl"
           variants={{
             hidden: {},
             show: { transition: { staggerChildren: 0.06 } },
           }}
         >
+          {/* Eyebrow badge */}
+          <motion.span
+            className="inline-block text-[11px] sm:text-xs tracking-[0.25em] uppercase text-amber-300/90 font-medium font-sans mb-1"
+            variants={{
+              hidden: { opacity: 0, y: -4 },
+              show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+            }}
+          >
+            R S V P
+          </motion.span>
+
+          {/* Judul Konfirmasi Kehadiran */}
           <motion.h2
-            className="font-playfair text-3xl md:text-4xl font-semibold text-white/95 mb-2"
+            className="font-playfair text-2xl sm:text-3xl md:text-4xl font-normal tracking-wide text-white drop-shadow-md mb-2"
             variants={{
               hidden: { opacity: 0, y: 8, scale: 0.996 },
               show: {
@@ -307,18 +334,33 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
               },
             }}
           >
-            RSVP
+            Konfirmasi Kehadiran
           </motion.h2>
 
+          {/* Ornamen Garis Pembatas */}
+          <motion.div
+            className="flex items-center justify-center gap-2.5 mb-3 text-amber-200/60"
+            variants={{
+              hidden: { opacity: 0, scale: 0.8 },
+              show: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+            }}
+            aria-hidden="true"
+          >
+            <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+          </motion.div>
+
           <motion.p
-            className="text-sm text-white/80 leading-relaxed"
+            className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-sm mx-auto mb-4"
             variants={{
               hidden: { opacity: 0, y: 8 },
               show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
             }}
           >
-            Kindly let us know if you will be able to attend our wedding
-            celebration. Your presence means a lot to us!
+            Mohon konfirmasikan kehadiran Anda untuk membantu kami mempersiapkan
+            acara dengan sebaik-baiknya. Doa restu Anda sangat berarti bagi
+            kami.
           </motion.p>
 
           <motion.form
@@ -334,8 +376,8 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
               };
               fetchData(payload);
             }}
-            className="space-y-4 text-left"
-            aria-label="RSVP Form"
+            className="space-y-3.5 text-left"
+            aria-label="Formulir Konfirmasi Kehadiran"
             variants={{
               hidden: {},
               show: {
@@ -353,11 +395,11 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 id="rsvp-name"
                 name="name"
                 type="text"
-                placeholder="Nama lengkap..."
+                placeholder="Nama lengkap Anda..."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-2 w-full h-11 px-4 rounded-lg bg-white/6 border border-white/16 text-sm text-white placeholder-white/50
-                     focus:outline-none focus:ring-2 focus:ring-white/30 transition"
+                className="w-full h-11 px-4 rounded-xl bg-white/6 border border-white/15 text-sm text-white placeholder-white/45
+                     focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-300/60 transition"
                 autoComplete="name"
                 whileFocus={{ scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 260, damping: 22 }}
@@ -374,11 +416,11 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 id="rsvp-email"
                 name="email"
                 type="email"
-                placeholder="Email aktif..."
+                placeholder="Alamat email aktif..."
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full h-11 px-4 rounded-lg bg-white/6 border border-white/16 text-sm text-white placeholder-white/50
-                     focus:outline-none focus:ring-2 focus:ring-white/30 transition"
+                className="w-full h-11 px-4 rounded-xl bg-white/6 border border-white/15 text-sm text-white placeholder-white/45
+                     focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-300/60 transition"
                 autoComplete="email"
                 whileFocus={{ scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 260, damping: 22 }}
@@ -393,18 +435,18 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
               }}
             >
               <motion.div
-                className="flex gap-3"
+                className="flex gap-2.5"
                 variants={{
                   hidden: {},
                   show: { transition: { staggerChildren: 0.04 } },
                 }}
               >
                 <motion.label
-                  className={`flex-1 cursor-pointer rounded-lg px-3 py-2 text-sm text-center border transition
+                  className={`flex-1 cursor-pointer rounded-xl px-3 py-2.5 text-xs sm:text-sm text-center border font-medium transition duration-200 flex items-center justify-center gap-1.5
               ${
                 attendance === "hadir"
-                  ? "bg-white/90 text-black border-transparent"
-                  : "bg-white/6 border-white/16 text-white/95"
+                  ? "bg-amber-400 text-slate-950 border-amber-300 font-semibold shadow-md shadow-amber-400/20"
+                  : "bg-white/6 border-white/15 text-white/90 hover:bg-white/10"
               }`}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 300, damping: 24 }}
@@ -421,15 +463,15 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                     onChange={() => setAttendance("hadir")}
                     className="sr-only"
                   />
-                  Hadir
+                  <span>✓</span> Hadir
                 </motion.label>
 
                 <motion.label
-                  className={`flex-1 cursor-pointer rounded-lg px-3 py-2 text-sm text-center border transition
+                  className={`flex-1 cursor-pointer rounded-xl px-3 py-2.5 text-xs sm:text-sm text-center border font-medium transition duration-200 flex items-center justify-center gap-1.5
               ${
                 attendance === "tidak"
-                  ? "bg-white/90 text-black border-transparent"
-                  : "bg-white/6 border-white/16 text-white/95"
+                  ? "bg-white/90 text-slate-950 border-white font-semibold shadow-md"
+                  : "bg-white/6 border-white/15 text-white/90 hover:bg-white/10"
               }`}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 300, damping: 24 }}
@@ -446,7 +488,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                     onChange={() => setAttendance("tidak")}
                     className="sr-only"
                   />
-                  Tidak Hadir
+                  <span>✕</span> Tidak Hadir
                 </motion.label>
               </motion.div>
             </motion.fieldset>
@@ -465,12 +507,12 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 max={3}
                 value={guests}
                 onChange={(e) => setGuests(e.target.value)}
-                placeholder="Berapa orang yang datang?"
-                className={`mt-2 w-full h-11 px-4 rounded-lg text-sm placeholder-white/50 focus:outline-none focus:ring-2 transition
+                placeholder="Jumlah tamu (termasuk Anda)"
+                className={`w-full h-11 px-4 rounded-xl text-sm placeholder-white/45 focus:outline-none focus:ring-2 transition
                       ${
                         attendance === "hadir"
-                          ? "bg-white/6 border border-white/16 text-white"
-                          : "bg-white/4 border border-white/10 text-white/60"
+                          ? "bg-white/6 border border-white/15 text-white focus:ring-amber-300/40 focus:border-amber-300/60"
+                          : "bg-white/4 border border-white/10 text-white/50 cursor-not-allowed"
                       }`}
                 disabled={attendance !== "hadir"}
                 aria-disabled={attendance !== "hadir"}
@@ -479,12 +521,12 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 transition={{ type: "spring", stiffness: 260, damping: 22 }}
               />
               <motion.p
-                className="mt-1 text-[11px] text-white/60"
+                className="mt-1.5 text-[11px] text-white/60"
                 variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
               >
                 {attendance === "hadir"
-                  ? "Masukkan jumlah tamu. Maks 3 orang."
-                  : "Non-aktif karena Anda menyatakan tidak hadir."}
+                  ? "Masukkan jumlah tamu yang hadir (maksimal 3 orang)."
+                  : "Dinonaktifkan karena Anda memilih tidak hadir."}
               </motion.p>
             </motion.div>
 
@@ -495,7 +537,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
             >
               {errorMessage ? (
                 <motion.p
-                  className="text-red-400 font-inter bg-red-300/10 py-2 px-4 rounded-md w-fit mx-auto"
+                  className="text-red-300 font-inter bg-red-500/15 border border-red-500/30 py-1.5 px-3 rounded-lg text-xs w-fit mx-auto"
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -505,7 +547,6 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
             </motion.div>
 
             <motion.div
-              className=""
               variants={{
                 hidden: { opacity: 0, y: 8 },
                 show: { opacity: 1, y: 0 },
@@ -514,14 +555,13 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
               <motion.button
                 type="submit"
                 disabled={isLoading}
-                className="w-full inline-flex items-center justify-center gap-3 px-5 py-3 rounded-full text-sm font-semibold tracking-wide transition
-                     bg-white/90 text-black hover:bg-white disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold tracking-wider transition bg-linear-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 hover:brightness-105 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-amber-400/20 cursor-pointer"
                 whileHover={
                   isLoading
                     ? undefined
                     : {
-                        scale: 1.02,
-                        y: -3,
+                        scale: 1.01,
+                        y: -2,
                         transition: {
                           type: "spring",
                           stiffness: 300,
@@ -534,7 +574,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 {isLoading ? (
                   <>
                     <svg
-                      className="h-4 w-4 animate-spin"
+                      className="h-4 w-4 animate-spin text-slate-950"
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
@@ -554,10 +594,10 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                       ></path>
                     </svg>
-                    Mengirim...
+                    Mengirim Konfirmasi...
                   </>
                 ) : (
-                  "KIRIM RESERVASI"
+                  "KIRIM KONFIRMASI"
                 )}
               </motion.button>
             </motion.div>

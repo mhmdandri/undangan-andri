@@ -846,13 +846,21 @@ export default function ReservationCheckIn() {
                               className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium border flex items-center gap-1 ${
                                 guestData.is_present || guestData.status === "hadir"
                                   ? "bg-emerald-500/15 text-emerald-300 border-emerald-400/30"
+                                  : guestData.status === "konfirmasi_hadir"
+                                  ? "bg-amber-500/15 text-amber-300 border-amber-400/30"
+                                  : guestData.status === "tidak_datang"
+                                  ? "bg-rose-500/15 text-rose-300 border-rose-400/30"
                                   : "bg-white/10 text-white/70 border-white/15"
                               }`}
                             >
                               <BsCheck2Circle className="text-xs" />
-                              {guestData.status === "hadir" || guestData.is_present
-                                ? "Hadir"
-                                : "RSVP"}
+                              {guestData.is_present || guestData.status === "hadir"
+                                ? "Sudah Hadir"
+                                : guestData.status === "konfirmasi_hadir"
+                                ? "RSVP: Hadir"
+                                : guestData.status === "tidak_datang"
+                                ? "RSVP: Tidak Hadir"
+                                : "Belum RSVP"}
                             </span>
                           </div>
 

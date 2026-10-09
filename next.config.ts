@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days cache for optimized images
     deviceSizes: [360, 414, 640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "api.qrserver.com",
+      },
+    ],
   },
   experimental: {
     optimizePackageImports: ["react-icons", "motion"],

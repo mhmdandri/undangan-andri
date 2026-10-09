@@ -7,7 +7,7 @@ export async function GET() {
       `${getServerApiUrl()}/api/reservations`,
       `${getPublicApiUrl()}/api/reservations`,
       "http://localhost:8888/api/reservations",
-    ])
+    ]),
   );
 
   for (const url of targetUrls) {
@@ -34,8 +34,12 @@ export async function GET() {
   }
 
   return NextResponse.json(
-    { data: [], message: "Gagal mengambil daftar reservasi dari backend", error: "Not found" },
-    { status: 502 }
+    {
+      data: [],
+      message: "Gagal mengambil daftar reservasi dari backend",
+      error: "Not found",
+    },
+    { status: 502 },
   );
 }
 
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
         `${getServerApiUrl()}/api/reservations`,
         `${getPublicApiUrl()}/api/reservations`,
         "http://localhost:8888/api/reservations",
-      ])
+      ]),
     );
 
     for (const url of targetUrls) {
@@ -85,12 +89,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: "Gagal menghubungkan ke server reservasi", status: "error" },
-      { status: 502 }
+      { status: 502 },
     );
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { error: "Internal server error", status: "error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

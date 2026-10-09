@@ -21,6 +21,7 @@ import {
 } from "react-icons/lu";
 import { FaWhatsapp } from "react-icons/fa";
 import { getPublicApiUrl } from "@/utils/api";
+import Image from "next/image";
 
 type ExcelGuestRow = {
   id_temp?: string;
@@ -54,7 +55,9 @@ export default function AdminGuestDashboard() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [importedResult, setImportedResult] = useState<ImportedGuest[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [selectedQrGuest, setSelectedQrGuest] = useState<ImportedGuest | null>(null);
+  const [selectedQrGuest, setSelectedQrGuest] = useState<ImportedGuest | null>(
+    null,
+  );
 
   // State Database Tamu
   const [dbGuests, setDbGuests] = useState<ImportedGuest[]>([]);
@@ -93,7 +96,7 @@ export default function AdminGuestDashboard() {
         "/api/reservations",
         "http://localhost:8888/api/reservations",
         `${getPublicApiUrl()}/api/reservations`,
-      ])
+      ]),
     );
 
     let loaded = false;
@@ -105,7 +108,7 @@ export default function AdminGuestDashboard() {
         });
 
         const rawText = await res.text();
-        let json: any = null;
+        let json: { data?: ImportedGuest[] } | null = null;
         try {
           json = JSON.parse(rawText);
         } catch {
@@ -487,10 +490,11 @@ Salam hangat,
           "/api/reservations/batch",
           "http://localhost:8888/api/reservations/batch",
           `${getPublicApiUrl()}/api/reservations/batch`,
-        ])
+        ]),
       );
 
-      let successData: { data?: ImportedGuest[]; message?: string } | null = null;
+      let successData: { data?: ImportedGuest[]; message?: string } | null =
+        null;
       let lastErrorMessage = "";
 
       for (const endpoint of targetEndpoints) {
@@ -504,7 +508,11 @@ Salam hangat,
           });
 
           const rawText = await res.text();
-          let json: any = null;
+          let json: {
+            data?: ImportedGuest[];
+            error?: string;
+            detail?: string;
+          } | null = null;
           try {
             json = JSON.parse(rawText);
           } catch {
@@ -517,20 +525,20 @@ Salam hangat,
           }
 
           if (json?.error || json?.detail) {
-            lastErrorMessage = json.error || json.detail;
+            lastErrorMessage = json.error || json.detail || "";
             if (res.status === 400) break; // Bad request validation error
           } else if (rawText) {
             lastErrorMessage = rawText;
           }
-        } catch (err: any) {
-          lastErrorMessage = err?.message || String(err);
+        } catch (err: unknown) {
+          lastErrorMessage = err instanceof Error ? err.message : String(err);
         }
       }
 
       if (!successData) {
         throw new Error(
           lastErrorMessage ||
-            "Gagal import data. Pastikan server Go port 8888 aktif dan route /api/reservations/batch terpasang."
+            "Gagal import data. Pastikan server Go port 8888 aktif dan route /api/reservations/batch terpasang.",
         );
       }
 
@@ -542,7 +550,7 @@ Salam hangat,
       setParsedRows([]);
       setFileName("");
       toast.success(
-        `Sukses! ${createdGuests.length} tamu berhasil diimport dan dibuatkan link undangan.`
+        `Sukses! ${createdGuests.length} tamu berhasil diimport dan dibuatkan link undangan.`,
       );
     } catch (err: unknown) {
       console.error("Submit import error:", err);
@@ -567,7 +575,7 @@ Salam hangat,
       "Link Undangan Digital":
         g.invite_url || `https://weddingofandricica.me?code=${g.code}`,
       "Link Gambar QR Code": `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(
-        g.invite_url || `https://weddingofandricica.me?code=${g.code}`
+        g.invite_url || `https://weddingofandricica.me?code=${g.code}`,
       )}`,
       Status: g.is_present
         ? "Sudah Hadir"
@@ -1221,16 +1229,34 @@ Salam hangat,
                               </div>
                             </td>
                             <td className="py-3 px-4">
-                              {isCheckedIn ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                                  <LuCircleCheck className="w-3.5 h-3.5" />
-                                  Hadir
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                                  Belum Hadir
-                                </span>
-                              )}
+                              <div className="flex flex-col items-start gap-1">
+                                {isCheckedIn ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                                    <LuCircleCheck className="w-3.5 h-3.5" />
+                                    Sudah Hadir
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                                    Belum Hadir
+                                  </span>
+                                )}
+
+                                {guest.status === "konfirmasi_hadir" && !isCheckedIn && (
+                                  <span className="text-[10px] text-amber-300 font-medium">
+                                    RSVP: Akan Hadir
+                                  </span>
+                                )}
+                                {guest.status === "tidak_datang" && (
+                                  <span className="text-[10px] text-rose-400 font-medium">
+                                    RSVP: Tidak Hadir
+                                  </span>
+                                )}
+                                {(!guest.status || guest.status === "belum_konfirmasi") && (
+                                  <span className="text-[10px] text-slate-500">
+                                    RSVP: Belum Konfirmasi
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3 px-4 text-right">
                               <div className="inline-flex items-center gap-1.5">
@@ -1323,23 +1349,31 @@ Salam hangat,
               {selectedQrGuest.name}
             </h3>
             <p className="text-xs text-slate-400 mb-3">
-              Jatah Kuota: {selectedQrGuest.quota_guests || selectedQrGuest.total_guests || 2} Pax
+              Jatah Kuota:{" "}
+              {selectedQrGuest.quota_guests ||
+                selectedQrGuest.total_guests ||
+                2}{" "}
+              Pax
             </p>
 
             {/* QR Code Container */}
             <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-2xl max-w-[220px] mx-auto my-3">
-              <img
+              <Image
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(
                   selectedQrGuest.invite_url ||
-                    `https://weddingofandricica.me?code=${selectedQrGuest.code}`
+                    `https://weddingofandricica.me?code=${selectedQrGuest.code}`,
                 )}`}
                 alt={`QR Code ${selectedQrGuest.name}`}
+                width={250}
+                height={250}
+                unoptimized
                 className="w-48 h-48 object-contain mx-auto"
               />
             </div>
 
             <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
-              Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi resepsi pernikahan
+              Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi
+              resepsi pernikahan
             </p>
 
             <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 mb-4">
@@ -1355,7 +1389,7 @@ Salam hangat,
               <a
                 href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=${encodeURIComponent(
                   selectedQrGuest.invite_url ||
-                    `https://weddingofandricica.me?code=${selectedQrGuest.code}`
+                    `https://weddingofandricica.me?code=${selectedQrGuest.code}`,
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1372,7 +1406,7 @@ Salam hangat,
                     selectedQrGuest.name,
                     selectedQrGuest.code,
                     selectedQrGuest.invite_url ||
-                      `https://weddingofandricica.me?code=${selectedQrGuest.code}`
+                      `https://weddingofandricica.me?code=${selectedQrGuest.code}`,
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
