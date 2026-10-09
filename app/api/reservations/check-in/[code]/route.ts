@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const BACKEND_URL =
-  process.env.INTERNAL_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8888";
+import { getServerApiUrl } from "@/utils/api";
 
 export async function GET(
   _request: NextRequest,
@@ -18,8 +14,9 @@ export async function GET(
       );
     }
 
+    const backendUrl = getServerApiUrl();
     const response = await fetch(
-      `${BACKEND_URL}/api/reservations/check-in/${encodeURIComponent(code)}`,
+      `${backendUrl}/api/reservations/check-in/${encodeURIComponent(code)}`,
       {
         method: "GET",
         headers: {

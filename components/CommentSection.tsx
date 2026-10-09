@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { motion } from "motion/react";
 import Image from "next/image";
 
+import { getPublicApiUrl } from "@/utils/api";
+
 type CommentSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
   onNext: () => void;
@@ -44,7 +46,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     }
     setIsLoading(true);
     try {
-      const res = await fetch("https://api.mohaproject.tech/api/comments", {
+      const apiUrl = getPublicApiUrl();
+      const res = await fetch(`${apiUrl}/api/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

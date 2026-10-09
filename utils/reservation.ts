@@ -1,3 +1,5 @@
+import { getServerApiUrl, getPublicApiUrl } from "@/utils/api";
+
 export type Reservation = {
   id?: number;
   name: string;
@@ -16,10 +18,8 @@ export async function getReservationByCode(
   const code = (rawCode || "").trim();
   if (!code) return null;
 
-  const backendUrl =
-    process.env.INTERNAL_API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:8888";
+  const backendUrl = getServerApiUrl();
+  const publicApiUrl = getPublicApiUrl();
 
   // 1. Try direct check-in endpoint (supported by Go backend / localhost)
   try {
@@ -40,11 +40,13 @@ export async function getReservationByCode(
     // Continue to fallback
   }
 
-  // 2. Fallback to reservations list from public API and backend URL
-  const apiUrls = [
-    "https://api.mohaproject.tech/api/reservations",
-    `${backendUrl}/api/reservations`,
-  ];
+  // 2. Fallback to reservations list from backend URL and public API
+  const apiUrls = Array.from(
+    new Set([
+      `${backendUrl}/api/reservations`,
+      `${publicApiUrl}/api/reservations`,
+    ])
+  );
 
   for (const url of apiUrls) {
     try {

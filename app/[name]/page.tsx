@@ -18,9 +18,12 @@ type SearchParams = {
   [key: string]: string | string[] | undefined;
 };
 
+import { getServerApiUrl } from "@/utils/api";
+
 async function getComments(): Promise<Wish[]> {
   try {
-    const res = await fetch("https://api.mohaproject.tech/api/comments", {
+    const apiUrl = getServerApiUrl();
+    const res = await fetch(`${apiUrl}/api/comments`, {
       next: { revalidate: 30 },
       signal: AbortSignal.timeout(2500),
     });

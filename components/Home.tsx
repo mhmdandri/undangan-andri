@@ -18,6 +18,8 @@ import LoadingSection from "@/components/LoadingSection"; // <--- baru
 import { motion } from "motion/react";
 import Image from "next/image";
 
+import { getPublicApiUrl } from "@/utils/api";
+
 type Wish = {
   name: string;
   message: string;
@@ -32,7 +34,8 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
   const [comments, setComments] = useState<Wish[]>(data ?? []);
   const refreshComments = useCallback(async () => {
     try {
-      const res = await fetch("https://api.mohaproject.tech/api/comments", {
+      const apiUrl = getPublicApiUrl();
+      const res = await fetch(`${apiUrl}/api/comments`, {
         cache: "no-store",
       });
       if (!res.ok) return;

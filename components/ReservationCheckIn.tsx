@@ -17,6 +17,7 @@ import {
   BsDash,
   BsHeartFill,
 } from "react-icons/bs";
+import { getPublicApiUrl } from "@/utils/api";
 
 export type GuestReservation = {
   id?: number;
@@ -123,7 +124,7 @@ export default function ReservationCheckIn() {
     setSuccessData(null);
 
     try {
-      // First try proxy route, fallback to direct localhost:8888 if needed
+      // First try proxy route, fallback to direct API if needed
       let res = await fetch(
         `/api/reservations/check-in/${encodeURIComponent(targetCode)}`,
         {
@@ -133,8 +134,9 @@ export default function ReservationCheckIn() {
 
       if (!res.ok && res.status === 502) {
         // Try direct call
+        const directApiUrl = getPublicApiUrl();
         res = await fetch(
-          `http://localhost:8888/api/reservations/check-in/${encodeURIComponent(targetCode)}`,
+          `${directApiUrl}/api/reservations/check-in/${encodeURIComponent(targetCode)}`,
           {
             cache: "no-store",
           },
@@ -163,10 +165,11 @@ export default function ReservationCheckIn() {
       }
     } catch (err) {
       console.error("Check-in verification failed", err);
-      // Fallback try direct localhost:8888
+      // Fallback try direct API
       try {
+        const directApiUrl = getPublicApiUrl();
         const directRes = await fetch(
-          `http://localhost:8888/api/reservations/check-in/${encodeURIComponent(targetCode)}`,
+          `${directApiUrl}/api/reservations/check-in/${encodeURIComponent(targetCode)}`,
         );
         const directJson: CheckInApiResponse = await directRes.json();
         if (directRes.ok && directJson.data) {
@@ -181,7 +184,7 @@ export default function ReservationCheckIn() {
       }
 
       const msg =
-        "Terjadi gangguan saat memverifikasi kode. Pastikan server backend aktif di port 8888.";
+        "Terjadi gangguan saat memverifikasi kode. Pastikan server backend aktif.";
       setErrorMessage(msg);
     } finally {
       setIsVerifying(false);
@@ -220,7 +223,8 @@ export default function ReservationCheckIn() {
 
       if (!res.ok && res.status === 502) {
         // Direct fallback
-        res = await fetch("http://localhost:8888/api/reservations/check-in", {
+        const directApiUrl = getPublicApiUrl();
+        res = await fetch(`${directApiUrl}/api/reservations/check-in`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -253,8 +257,9 @@ export default function ReservationCheckIn() {
       console.error("Check-in submit error", err);
       // Fallback direct
       try {
+        const directApiUrl = getPublicApiUrl();
         const directRes = await fetch(
-          "http://localhost:8888/api/reservations/check-in",
+          `${directApiUrl}/api/reservations/check-in`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

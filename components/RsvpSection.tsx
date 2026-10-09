@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import Modal from "./Modal";
 import { LuCopy, LuCopyCheck } from "react-icons/lu";
 import LazyBackgroundVideo from "./LazyBackgroundVideo";
+import { getPublicApiUrl } from "@/utils/api";
 
 type RsvpSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
@@ -48,7 +49,8 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       return;
     }
     try {
-      const res = await fetch("https://api.mohaproject.tech/api/reservations", {
+      const apiUrl = getPublicApiUrl();
+      const res = await fetch(`${apiUrl}/api/reservations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
