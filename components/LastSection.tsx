@@ -44,12 +44,17 @@ const LastSection: React.FC<LastSectionProps> = ({
             },
           },
         }}
-        className="relative z-10 flex items-center min-h-screen"
+        className="relative z-10 flex items-center min-h-screen px-4"
       >
-        <div className="mx-auto max-w-md px-6 py-24 text-center">
+        <div className="mx-auto max-w-md w-full px-6 py-8 text-center bg-black/35 border border-white/12 rounded-3xl backdrop-blur-[2px] shadow-2xl space-y-4">
+          {/* Eyebrow */}
+          <span className="inline-block text-[11px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-medium font-sans">
+            U N G K A P A N &nbsp; T E R I M A &nbsp; K A S I H
+          </span>
+
           {/* Title */}
           <motion.h2
-            className="font-playfair text-4xl md:text-5xl font-semibold tracking-wide text-white/95 mb-4"
+            className="font-playfair text-3xl sm:text-4xl font-bold tracking-wide text-white drop-shadow-md"
             variants={{
               hidden: { opacity: 0, y: 10, scale: 0.97 },
               show: {
@@ -60,38 +65,34 @@ const LastSection: React.FC<LastSectionProps> = ({
               },
             }}
           >
-            Thank You!
+            Terima Kasih
           </motion.h2>
+
+          {/* Ornamen Garis Pembatas */}
+          <div className="flex items-center justify-center gap-2 text-amber-200/60" aria-hidden="true">
+            <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+          </div>
 
           {/* Description */}
           <motion.p
-            className="text-sm md:text-base text-white/80 leading-relaxed"
+            className="text-xs sm:text-sm text-slate-200/90 leading-relaxed max-w-sm mx-auto"
             variants={{
               hidden: { opacity: 0, y: 10 },
               show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
             }}
           >
-            We appreciate your presence and support on our special day. Looking
-            forward to celebrating together!
+            Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir serta memberikan doa restu kepada kami.
           </motion.p>
 
-          {/* Divider */}
-          <motion.div
-            className="mt-10 h-px w-28 bg-white/20 mx-auto"
-            variants={{
-              hidden: { scaleX: 0, opacity: 0 },
-              show: {
-                scaleX: 1,
-                opacity: 1,
-                transition: { duration: 0.6, ease: "easeOut" },
-              },
-            }}
-            style={{ transformOrigin: "center" }}
-          />
+          <p className="text-xs sm:text-sm text-slate-300/80 leading-relaxed italic">
+            Semoga Allah SWT senantiasa melimpahkan berkah dan rahmat-Nya bagi kita semua.
+          </p>
 
           {/* Names */}
           <motion.div
-            className="mt-4 font-alex-brush font-semibold text-3xl"
+            className="pt-2 font-alex-brush font-semibold text-3xl sm:text-4xl text-amber-200"
             variants={{
               hidden: { opacity: 0, y: 8 },
               show: {
@@ -104,7 +105,7 @@ const LastSection: React.FC<LastSectionProps> = ({
               },
             }}
           >
-            Andri & Cica
+            Andri &amp; Cica
           </motion.div>
         </div>
       </motion.div>

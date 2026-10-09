@@ -117,15 +117,21 @@ const GallerySection: React.FC<GallerySectionProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.3 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-4"
+          className="text-center mb-4 space-y-1"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-white/70 mb-1">
-            Our Moments
-          </p>
-          <h2 className="text-3xl font-light font-alex-brush text-white/95">
-            Our Gallery
+          <span className="inline-block text-[11px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-medium font-sans">
+            M O M E N T S &nbsp; O F &nbsp; L O V E
+          </span>
+          <h2 className="font-playfair text-2xl sm:text-3xl font-bold tracking-wide text-white drop-shadow-md">
+            Galeri Foto Prewedding
           </h2>
-          <div className="mx-auto mt-2 h-px w-20 bg-white/30" />
+
+          {/* Ornamen Garis Pembatas */}
+          <div className="flex items-center justify-center gap-2 text-amber-200/60 pt-0.5" aria-hidden="true">
+            <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+          </div>
         </motion.div>
 
         {/* INSTAGRAM-STYLE GRID */}
@@ -136,7 +142,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({
           transition={{ duration: 0.65, delay: 0.1 }}
           className="flex-1 overflow-y-auto custom-scroll pr-1 pb-2"
         >
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {galleryImages.map((src, idx) => (
               <motion.button
                 key={idx}
@@ -144,7 +150,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({
                 onClick={() => handleOpenPopup(idx)}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
-                className="group relative aspect-square w-full overflow-hidden rounded-md bg-white/5 border border-white/10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="group relative aspect-square w-full overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400/40 shadow-sm transition"
                 aria-label={`Lihat foto ${idx + 1}`}
               >
                 <Image
@@ -156,15 +162,15 @@ const GallerySection: React.FC<GallerySectionProps> = ({
                 />
 
                 {/* Instagram-style hover overlay */}
-                <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                  <BsHeart className="text-white text-base fill-white drop-shadow-md" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <BsHeart className="text-amber-300 text-lg fill-amber-300 drop-shadow-md" />
                 </div>
               </motion.button>
             ))}
           </div>
 
-          <p className="text-[11px] text-center text-white/50 mt-4 tracking-wider uppercase">
-            Ketuk foto untuk memperbesar
+          <p className="text-[11px] text-center text-slate-400 mt-4 tracking-wider uppercase font-medium">
+            Ketuk foto untuk melihat layar penuh
           </p>
         </motion.div>
       </div>

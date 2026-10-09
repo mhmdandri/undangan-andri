@@ -17,6 +17,7 @@ import LastSection from "./LastSection";
 import LoadingSection from "@/components/LoadingSection"; // <--- baru
 import { motion } from "motion/react";
 import Image from "next/image";
+import { LuMailOpen } from "react-icons/lu";
 
 import { getPublicApiUrl } from "@/utils/api";
 
@@ -130,11 +131,11 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
 
     // Load critical assets in parallel with a 1.4s safety ceiling
     const loadPromise = Promise.all(
-      criticalAssets.map((src) => loadImage(src).then(updateProgress))
+      criticalAssets.map((src) => loadImage(src).then(updateProgress)),
     );
 
     const timeoutPromise = new Promise<void>((resolve) =>
-      setTimeout(resolve, 1400)
+      setTimeout(resolve, 1400),
     );
 
     Promise.race([loadPromise, timeoutPromise]).then(() => {
@@ -223,21 +224,33 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
               hidden: { opacity: 0, y: 15 },
               show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
             }}
-            className="w-full text-center tracking-[0.35em] text-white/70 space-y-4"
+            className="w-full text-center space-y-3"
           >
-            <p className="text-xs uppercase">THE WEDDING OF</p>
+            <span className="inline-block text-[11px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-medium">
+              THE WEDDING OF
+            </span>
 
             <motion.h1
               variants={{
                 hidden: { opacity: 0, y: 10 },
                 show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
               }}
-              className="text-3xl font-semibold font-alex-brush tracking-normal sm:text-4xl"
+              className="text-4xl font-semibold font-alex-brush tracking-normal sm:text-5xl text-white drop-shadow-lg"
             >
               Andri &amp; Cica
             </motion.h1>
 
-            <p className="text-xs tracking-[0.35em] text-white/80">
+            {/* Ornamen Garis Pembatas */}
+            <div
+              className="flex items-center justify-center gap-2.5 text-amber-200/60"
+              aria-hidden="true"
+            >
+              <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+              <span className="text-[10px] text-amber-300">✦</span>
+              <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+            </div>
+
+            <p className="text-[11px] sm:text-xs tracking-[0.3em] text-white/80 font-medium uppercase">
               SABTU, 21 NOVEMBER 2026
             </p>
           </motion.section>
@@ -247,19 +260,28 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
               hidden: { opacity: 0, y: 15 },
               show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
             }}
-            className="flex w-full flex-col items-center text-center text-white/80 space-y-4"
+            className="flex w-full flex-col items-center text-center space-y-4 mt-28"
           >
-            <p className="italic text-lg translate-y-2">Kepada</p>
+            {/* Kartu Penerima Undangan */}
+            <div className="bg-black/25 border border-amber-400/30 rounded-2xl px-6 py-4 shadow-2xl max-w-xs w-full space-y-1">
+              <p className="text-xs text-white/90 italic drop-shadow-md">
+                Kepada Yth. Bapak/Ibu/Saudara/i:
+              </p>
 
-            <motion.h1
-              variants={{
-                hidden: { opacity: 0, y: 10 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
-              }}
-              className="text-3xl font-semibold leading-snug font-alex-brush"
-            >
-              {guestName ?? "Tamu Undangan"}
-            </motion.h1>
+              <motion.h2
+                variants={{
+                  hidden: { opacity: 0, y: 6 },
+                  show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
+                }}
+                className="text-2xl sm:text-3xl font-semibold leading-snug font-alex-brush text-amber-200 drop-shadow-md"
+              >
+                {guestName ?? "Tamu Undangan"}
+              </motion.h2>
+
+              <p className="text-[10px] text-white/75 tracking-wider uppercase drop-shadow-md">
+                Di Tempat
+              </p>
+            </div>
 
             <motion.div
               variants={{
@@ -272,9 +294,10 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
                 onClick={() => {
                   handleOpen();
                 }}
-                className="rounded-full bg-white/50 px-7 py-3 text-xs font-medium uppercase tracking-[0.3em] text-black transition hover:bg-white/60"
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 px-8 py-3.5 text-xs font-bold uppercase tracking-[0.25em] text-slate-950 shadow-xl shadow-amber-500/25 transition active:scale-95"
               >
-                OPEN INVITATION
+                <LuMailOpen className="w-4 h-4" />
+                <span>BUKA UNDANGAN</span>
               </Link>
             </motion.div>
           </motion.section>

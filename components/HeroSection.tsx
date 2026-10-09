@@ -59,9 +59,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
             hidden: { opacity: 0, scale: 0.8 },
             show: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
           }}
-          className="mx-auto h-10 w-10 rounded-full border border-white/40 flex items-center justify-center"
+          className="mx-auto h-12 w-12 rounded-full border border-amber-400/40 bg-amber-500/10 flex items-center justify-center shadow-lg shadow-amber-500/10"
         >
-          <PiFlowerTulipThin className="text-2xl text-white/80" />
+          <PiFlowerTulipThin className="text-2xl text-amber-300" />
         </motion.div>
 
         <motion.div
@@ -69,45 +69,51 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
             hidden: { opacity: 0, y: 8 },
             show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
           }}
-          className="tracking-[0.35em] text-white/70 text-xs"
+          className="space-y-3"
         >
-          THE WEDDING OF
+          <span className="inline-block text-[11px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-medium">
+            THE WEDDING OF
+          </span>
+
+          <motion.h2
+            variants={{
+              hidden: { opacity: 0, y: 10 },
+              show: { opacity: 1, y: 0, transition: { duration: 0.65 } },
+            }}
+            className="text-5xl sm:text-6xl font-semibold font-alex-brush text-white drop-shadow-xl"
+          >
+            Andri &amp; Cica
+          </motion.h2>
+
+          {/* Ornamen Garis Pembatas */}
+          <div className="flex items-center justify-center gap-2.5 text-amber-200/60" aria-hidden="true">
+            <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+          </div>
+
+          <p className="text-xs sm:text-sm tracking-[0.35em] text-white/80 font-medium uppercase">
+            SABTU, 21 NOVEMBER 2026
+          </p>
         </motion.div>
-
-        <motion.h2
-          variants={{
-            hidden: { opacity: 0, y: 10 },
-            show: { opacity: 1, y: 0, transition: { duration: 0.65 } },
-          }}
-          className="text-4xl font-semibold font-alex-brush"
-        >
-          Andri &amp; Cica
-        </motion.h2>
-
-        <motion.p
-          variants={{
-            hidden: { opacity: 0, y: 6 },
-            show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
-          }}
-          className="text-sm tracking-[0.35em] text-white/80"
-        >
-          SABTU, 21 NOVEMBER 2026
-        </motion.p>
 
         <motion.div
           variants={{
             hidden: { opacity: 0, y: 12 },
             show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
           }}
-          className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/40"
+          className="pt-2"
         >
           <motion.button
             onClick={onScrollDown}
-            className="hover:bg-transparent hover:text-white cursor-pointer"
-            whileHover={{ scale: 1.08 }}
+            className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/50 bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 hover:text-white transition shadow-lg shadow-amber-500/20 cursor-pointer"
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            title="Gulir ke bawah"
           >
-            <span className="text-2xl">
+            <span className="text-xl">
               <BsArrowDown />
             </span>
           </motion.button>

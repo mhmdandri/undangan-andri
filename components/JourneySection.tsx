@@ -11,6 +11,33 @@ type JourneySectionProps = {
   onPrev: () => void;
 };
 
+const timelineData = [
+  {
+    period: "November 2023",
+    title: "Awal Kisah",
+    description:
+      "Tanpa diduga, langkah kami mulai berpadu dalam irama yang sama. Komunikasi menjadi lebih hangat, kebersamaan terasa lebih dekat. Dari sekadar teman, perlahan tumbuh rasa, dan kami pun memulai sebuah hubungan.",
+  },
+  {
+    period: "November 2024",
+    title: "Niat Suci",
+    description:
+      "Satu tahun berlalu dengan penuh cerita dan komitmen. Pada tanggal 30 November 2024, ia menyatakan niat suci—melamarku untuk menjadi pendamping hidupnya.",
+  },
+  {
+    period: "Februari 2025",
+    title: "Pertemuan Keluarga",
+    description:
+      "Langkah kami semakin mantap. Pertemuan dua keluarga menjadi saksi niat baik dan restu yang kami harapkan. Lamaran pun resmi disampaikan, mempertemukan dua hati dalam ikatan keluarga.",
+  },
+  {
+    period: "September 2025",
+    title: "Menuju Ikatan Suci",
+    description:
+      "Kini, kami bersiap untuk menapaki babak baru sebagai suami istri. Perjalanan ini telah menjadi anugerah yang penuh makna.",
+  },
+];
+
 const JourneySection: React.FC<JourneySectionProps> = ({
   verseRef,
   onNext,
@@ -20,210 +47,103 @@ const JourneySection: React.FC<JourneySectionProps> = ({
     <section
       ref={verseRef}
       id="journey"
-      className="relative h-dvh w-full text-white"
+      className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
       <LazyBackgroundVideo src="/media/2.mp4" />
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/45" />
+      <div className="absolute inset-0 bg-black/55" />
 
-      {/* CONTENT (Kiri Atas) */}
+      {/* CONTENT */}
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.35 }}
+        viewport={{ once: false, amount: 0.25 }}
         variants={{
-          hidden: { opacity: 0, y: 18 },
+          hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.14 },
+            transition: { when: "beforeChildren", staggerChildren: 0.1 },
           },
         }}
-        className="relative z-10 px-6 max-w-xl pt-10 space-y-4"
+        className="relative z-10 px-5 max-w-lg mx-auto pt-7 sm:pt-9 flex flex-col h-[calc(100dvh-5.5rem)]"
       >
-        {/* Title */}
-        <motion.h1
-          className="text-3xl font-semibold tracking-[0.08em] text-white/95 font-alex-brush"
-          variants={{
-            hidden: { opacity: 0, y: 12, scale: 0.995 },
-            show: {
-              opacity: 1,
-              y: 0,
-              scale: [1.02, 0.997, 1],
-              transition: { duration: 0.8, ease: [0.2, 0.85, 0.2, 1] },
-            },
-          }}
-        >
-          OUR JOURNEY
-        </motion.h1>
+        {/* Header Title */}
+        <div className="space-y-1 text-center shrink-0">
+          <span className="inline-block text-[10px] sm:text-[11px] tracking-[0.28em] uppercase text-amber-300 font-medium">
+            OUR LOVE STORY
+          </span>
+          <motion.h2
+            className="font-playfair text-2xl sm:text-3xl font-bold tracking-wide text-white drop-shadow-md"
+            variants={{
+              hidden: { opacity: 0, y: 10, scale: 0.995 },
+              show: {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: { duration: 0.7, ease: [0.2, 0.85, 0.2, 1] },
+              },
+            }}
+          >
+            Kisah Perjalanan Cinta
+          </motion.h2>
 
-        {/* Scroll Area */}
+          {/* Ornamen Garis Pembatas */}
+          <div
+            className="flex items-center justify-center gap-2 text-amber-200/60 pt-0.5"
+            aria-hidden="true"
+          >
+            <div className="h-px w-8 sm:w-12 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-8 sm:w-12 bg-linear-to-l from-transparent to-amber-200/60" />
+          </div>
+        </div>
+
+        {/* Continuous Connected Vertical Timeline */}
         <motion.div
-          className="max-h-[70dvh] overflow-y-auto pr-2 custom-scroll space-y-6 text-[15px] leading-relaxed text-white/85"
+          className="flex-1 overflow-y-auto pr-1.5 custom-scroll mt-3.5 space-y-4"
           variants={{
             hidden: { opacity: 0 },
-            show: { opacity: 1, transition: { staggerChildren: 0.12 } },
+            show: { opacity: 1, transition: { staggerChildren: 0.1 } },
           }}
         >
-          {/* ITEM 1 */}
-          <motion.div
-            className="space-y-1"
-            variants={{
-              hidden: { opacity: 0, y: 10 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
-            }}
-          >
-            <motion.p
-              className="text-lg font-semibold tracking-wide text-white/95"
-              variants={{
-                hidden: { x: -8, opacity: 0 },
-                show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
-              }}
-            >
-              November 2023
-            </motion.p>
-            <motion.p
-              variants={{
-                hidden: { opacity: 0 },
-                show: { opacity: 1, transition: { duration: 0.5 } },
-              }}
-            >
-              Tanpa diduga, langkah kami mulai berpadu dalam irama yang sama.
-              Komunikasi menjadi lebih hangat, kebersamaan terasa lebih dekat.
-              Dari sekadar teman, perlahan tumbuh rasa, dan kami pun memulai
-              sebuah hubungan.
-            </motion.p>
-          </motion.div>
+          <div className="relative pl-5 ml-2.5 border-l-2 border-amber-400/40 space-y-3.5">
+            {timelineData.map((item, index) => (
+              <motion.div
+                key={index}
+                className="relative bg-black/40 border border-white/10 rounded-xl p-3.5 backdrop-blur-xs shadow-lg space-y-1.5"
+                variants={{
+                  hidden: { opacity: 0, x: 12 },
+                  show: {
+                    opacity: 1,
+                    x: 0,
+                    transition: { duration: 0.5, ease: "easeOut" },
+                  },
+                }}
+              >
+                {/* Node dot on the continuous vertical line */}
+                <div
+                  className="absolute -left-7 top-3.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-black ring-4 ring-amber-400/25 shadow-sm"
+                  aria-hidden="true"
+                />
 
-          <motion.div
-            className="h-px w-full bg-white/20"
-            aria-hidden
-            variants={{
-              hidden: { scaleX: 0, opacity: 0, transformOrigin: "left center" },
-              show: {
-                scaleX: 1,
-                opacity: 1,
-                transition: { duration: 0.5, ease: "easeOut" },
-              },
-            }}
-            style={{ transformOrigin: "left center" }}
-          />
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-300 text-[11px] sm:text-xs tracking-wider uppercase font-mono">
+                    {item.period}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-slate-300 font-medium">
+                    {item.title}
+                  </span>
+                </div>
 
-          {/* ITEM 2 */}
-          <motion.div
-            className="space-y-1"
-            variants={{
-              hidden: { opacity: 0, y: 10 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
-            }}
-          >
-            <motion.p
-              className="text-lg font-semibold tracking-wide text-white/95"
-              variants={{
-                hidden: { x: -8, opacity: 0 },
-                show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
-              }}
-            >
-              November 2024
-            </motion.p>
-            <motion.p
-              variants={{
-                hidden: { opacity: 0 },
-                show: { opacity: 1, transition: { duration: 0.5 } },
-              }}
-            >
-              Satu tahun berlalu dengan penuh cerita dan komitmen. Pada tanggal
-              30 November 2024, ia menyatakan niat suci—melamarku untuk menjadi
-              pendamping hidupnya.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            className="h-px w-full bg-white/20"
-            aria-hidden
-            variants={{
-              hidden: { scaleX: 0, opacity: 0, transformOrigin: "left center" },
-              show: {
-                scaleX: 1,
-                opacity: 1,
-                transition: { duration: 0.5, ease: "easeOut", delay: 0.05 },
-              },
-            }}
-            style={{ transformOrigin: "left center" }}
-          />
-
-          {/* ITEM 3 */}
-          <motion.div
-            className="space-y-1"
-            variants={{
-              hidden: { opacity: 0, y: 10 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
-            }}
-          >
-            <motion.p
-              className="text-lg font-semibold tracking-wide text-white/95"
-              variants={{
-                hidden: { x: -8, opacity: 0 },
-                show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
-              }}
-            >
-              Februari 2025
-            </motion.p>
-            <motion.p
-              variants={{
-                hidden: { opacity: 0 },
-                show: { opacity: 1, transition: { duration: 0.5 } },
-              }}
-            >
-              Langkah kami semakin mantap. Pertemuan dua keluarga menjadi saksi
-              niat baik dan restu yang kami harapkan. Lamaran pun resmi
-              disampaikan, mempertemukan dua hati dalam ikatan keluarga.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            className="h-px w-full bg-white/20"
-            aria-hidden
-            variants={{
-              hidden: { scaleX: 0, opacity: 0, transformOrigin: "left center" },
-              show: {
-                scaleX: 1,
-                opacity: 1,
-                transition: { duration: 0.5, ease: "easeOut", delay: 0.08 },
-              },
-            }}
-            style={{ transformOrigin: "left center" }}
-          />
-
-          {/* ITEM 4 */}
-          <motion.div
-            className="space-y-1"
-            variants={{
-              hidden: { opacity: 0, y: 10 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
-            }}
-          >
-            <motion.p
-              className="text-lg font-semibold tracking-wide text-white/95"
-              variants={{
-                hidden: { x: -8, opacity: 0 },
-                show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
-              }}
-            >
-              September 2025
-            </motion.p>
-            <motion.p
-              variants={{
-                hidden: { opacity: 0 },
-                show: { opacity: 1, transition: { duration: 0.5 } },
-              }}
-            >
-              Kini, kami bersiap untuk menapaki babak baru sebagai suami istri.
-              Perjalanan ini telah menjadi anugerah yang penuh makna.
-            </motion.p>
-          </motion.div>
+                <p className="text-xs sm:text-[13px] leading-relaxed text-slate-100 text-justify">
+                  {item.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </motion.div>
 

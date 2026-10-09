@@ -56,49 +56,59 @@ const GroomSection: React.FC<GroomSectionProps> = ({
         }}
         className="absolute inset-x-0 bottom-24 z-10 px-6"
       >
-        <div className="max-w-md space-y-4">
-          <motion.p
-            className="text-xs tracking-[0.35em] uppercase text-white/70"
+        <div className="max-w-md space-y-3.5">
+          <motion.div
             variants={{
               hidden: { opacity: 0, y: 8 },
               show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
             }}
+            className="space-y-1"
           >
-            THE GROOM
-          </motion.p>
-          <motion.h1
-            className="text-2xl md:text-3xl font-light font-alex-brush"
-            variants={{
-              hidden: { opacity: 0, y: 12, scale: 0.995 },
-              show: {
-                opacity: 1,
-                y: 0,
-                scale: [1.02, 0.995, 1],
-                transition: { duration: 0.8, ease: [0.2, 0.9, 0.2, 1] },
-              },
-            }}
-          >
-            Muhamad Andriyansyah S.Kom
-          </motion.h1>
+            <span className="inline-block text-[11px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-medium">
+              THE GROOM
+            </span>
+            <motion.h1
+              className="text-2xl sm:text-3xl font-bold font-playfair tracking-wide text-white drop-shadow-md"
+              variants={{
+                hidden: { opacity: 0, y: 12, scale: 0.995 },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  scale: [1.02, 0.995, 1],
+                  transition: { duration: 0.8, ease: [0.2, 0.9, 0.2, 1] },
+                },
+              }}
+            >
+              Muhamad Andriyansyah, S.Kom
+            </motion.h1>
+
+            {/* Ornamen Garis Pembatas */}
+            <div className="flex items-center gap-2 text-amber-200/60 pt-1" aria-hidden="true">
+              <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+              <span className="text-[10px] text-amber-300">✦</span>
+              <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+            </div>
+          </motion.div>
+
           <motion.div
-            className="flex items-center gap-4"
+            className="flex items-center gap-3"
             variants={{
               hidden: { opacity: 0, y: 8 },
               show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
             }}
           >
             <motion.p
-              className="italic text-sm text-white/80"
+              className="italic text-xs sm:text-sm text-slate-300"
               variants={{
                 hidden: { x: -6, opacity: 0 },
                 show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
               }}
             >
-              Putra ke 3 dari 4
+              Putra ke-3 dari 4 bersaudara
             </motion.p>
 
             <motion.div
-              className="flex-1 border-t border-white/40 translate-y-px"
+              className="flex-1 h-px bg-linear-to-r from-amber-400/40 to-transparent translate-y-px"
               variants={{
                 hidden: {
                   scaleX: 0,
@@ -115,47 +125,43 @@ const GroomSection: React.FC<GroomSectionProps> = ({
               aria-hidden
             />
           </motion.div>
+
           <motion.p
-            className="text-sm md:text-base text-white/80"
+            className="text-xs sm:text-sm text-slate-200 font-medium"
             variants={{
               hidden: { opacity: 0, y: 10 },
               show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
             }}
           >
-            Bapak Nana dan Ibu Kanah
+            Bapak Nana &amp; Ibu Kanah
           </motion.p>
-          <motion.a
-            href="https://instagram.com/mhmdandri_"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm backdrop-blur-sm hover:bg-white/20 transition"
+
+          <motion.div
             variants={{
               hidden: { opacity: 0, y: 10, scale: 0.98 },
               show: {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                transition: { duration: 2.2, ease: [0.2, 0.8, 0.2, 1] },
+                transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] },
               },
             }}
-            whileHover={{
-              scale: 1.06,
-              y: -3,
-              transition: { type: "spring", stiffness: 280, damping: 22 },
-            }}
-            whileTap={{
-              scale: 0.96,
-              transition: { type: "spring", stiffness: 400, damping: 30 },
-            }}
           >
-            <span
-              aria-hidden
-              className="inline-flex items-center justify-center"
+            <motion.a
+              href="https://instagram.com/mhmdandri_"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-500/10 hover:bg-amber-500/25 text-amber-200 hover:text-white px-4 py-2 text-xs font-semibold backdrop-blur-sm transition shadow-sm shadow-amber-500/10"
+              whileHover={{
+                scale: 1.05,
+                y: -2,
+                transition: { type: "spring", stiffness: 280, damping: 22 },
+              }}
             >
-              <BsInstagram />
-            </span>
-            <span>mhmdandri_</span>
-          </motion.a>
+              <BsInstagram className="text-amber-300" />
+              <span>@mhmdandri_</span>
+            </motion.a>
+          </motion.div>
         </div>
       </motion.div>
       <motion.div

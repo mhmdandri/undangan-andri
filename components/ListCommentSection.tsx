@@ -35,10 +35,21 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />
 
-      <div className="relative z-10 flex items-center justify-between px-6 pt-10">
-        <div className="flex flex-col">
-          <p className="text-3xl font-light tracking-wide">Wishes</p>
-          <div className="mt-2 h-px w-24 bg-white/50" />
+      <div className="relative z-10 px-5 pt-8 max-w-lg mx-auto">
+        <div className="space-y-1 text-center sm:text-left">
+          <span className="inline-block text-[11px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-medium font-sans">
+            W I S H E S &nbsp; &amp; &nbsp; P R A Y E R S
+          </span>
+          <h2 className="font-playfair text-2xl sm:text-3xl font-bold tracking-wide text-white drop-shadow-md">
+            Doa &amp; Ucapan Tamu
+          </h2>
+
+          {/* Ornamen Garis Pembatas */}
+          <div className="flex items-center justify-center sm:justify-start gap-2 text-amber-200/60 pt-1" aria-hidden="true">
+            <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
+            <span className="text-[10px] text-amber-300">✦</span>
+            <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
+          </div>
         </div>
       </div>
 
@@ -51,108 +62,72 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
           hidden: { opacity: 0 },
           show: { opacity: 1, transition: { staggerChildren: 0.08 } },
         }}
-        className="relative z-10 mt-6 px-6 pb-24 max-h-[70dvh] overflow-y-auto space-y-6 pr-4"
+        className="relative z-10 mt-4 px-5 pb-24 max-h-[68dvh] overflow-y-auto space-y-3.5 custom-scroll max-w-lg mx-auto"
       >
         {wishes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-white/70">
-            <p className="text-sm font-light tracking-wide">Belum ada ucapan dan doa.</p>
-            <p className="mt-1.5 text-xs text-white/50">Jadilah yang pertama menuliskan ucapan di form sebelumnya!</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6">
+            <p className="text-sm font-medium text-slate-300">Belum ada ucapan dan doa.</p>
+            <p className="mt-1 text-xs text-slate-400">Jadilah yang pertama menuliskan ucapan di form sebelumnya!</p>
           </div>
         ) : (
           wishes.map((wish, idx) => {
             const isRight = idx % 2 !== 0;
 
-          // ambil inisial nama untuk avatar
-          const initials = (wish.name || "A")
-            .split(" ")
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join("")
-            .toUpperCase();
+            // ambil inisial nama untuk avatar
+            const initials = (wish.name || "A")
+              .split(" ")
+              .map((s) => s[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
 
-          return (
-            <motion.div
-              key={idx}
-              className={`max-w-[85%] ${isRight ? "ml-auto" : "mr-auto"} `}
-              variants={{
-                hidden: { opacity: 0, y: 12, scale: 0.995 },
-                show: {
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  transition: { duration: 0.5, ease: "easeOut" },
-                },
-              }}
-              whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.35)" }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            >
-              <div
-                className={`group flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl
-            bg-black/25 hover:bg-black/5 active:bg-black/5
-            border border-white/15 hover:border-white/30 active:border-white/30
-            backdrop-blur-[2px] hover:backdrop-blur-none active:backdrop-blur-none
-            shadow-lg transition-all duration-300 cursor-pointer select-none
-            ${isRight ? "flex-row-reverse text-right" : "text-left"}`}
+            return (
+              <motion.div
+                key={idx}
+                className={`max-w-[92%] sm:max-w-[85%] ${isRight ? "ml-auto" : "mr-auto"}`}
+                variants={{
+                  hidden: { opacity: 0, y: 12, scale: 0.995 },
+                  show: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: { duration: 0.5, ease: "easeOut" },
+                  },
+                }}
+                whileHover={{ y: -2 }}
+                transition={{ type: "spring", stiffness: 260, damping: 26 }}
               >
-                <motion.div
-                  className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-semibold text-xs tracking-wider border border-white/20 group-hover:border-white/30 shadow-sm transition-colors
-              ${
-                isRight
-                  ? "bg-white/10 group-hover:bg-white/5 text-white"
-                  : "bg-white/15 group-hover:bg-white/5 text-white"
-              }`}
-                  aria-hidden="true"
-                  variants={{
-                    hidden: { opacity: 0, scale: 0.8 },
-                    show: {
-                      opacity: 1,
-                      scale: 1,
-                      transition: { duration: 0.45 },
-                    },
-                  }}
+                <div
+                  className={`group flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl
+              bg-black/35 hover:bg-black/45
+              border border-white/12 hover:border-amber-400/30
+              backdrop-blur-[2px]
+              shadow-lg transition-all duration-300 select-none
+              ${isRight ? "flex-row-reverse text-right" : "text-left"}`}
                 >
-                  {initials}
-                </motion.div>
-
-                <div className="min-w-0">
-                  <motion.p
-                    className="text-sm font-semibold italic tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
-                    variants={{
-                      hidden: { x: -8, opacity: 0 },
-                      show: {
-                        x: 0,
-                        opacity: 1,
-                        transition: { duration: 0.45 },
-                      },
-                    }}
+                  <div
+                    className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center font-bold text-xs tracking-wider bg-linear-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md shadow-amber-500/20"
+                    aria-hidden="true"
                   >
-                    {wish.name}
-                  </motion.p>
+                    {initials}
+                  </div>
 
-                  <motion.p
-                    className="mt-1 text-sm leading-relaxed text-white/95 wrap-break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
-                    variants={{
-                      hidden: { opacity: 0 },
-                      show: { opacity: 1, transition: { duration: 0.5 } },
-                    }}
-                  >
-                    {wish.message}
-                  </motion.p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-semibold tracking-wide text-amber-200">
+                      {wish.name}
+                    </p>
 
-                  <motion.p
-                    className="mt-2 text-[11px] text-white/70 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-                    variants={{
-                      hidden: { opacity: 0, y: 6 },
-                      show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-                    }}
-                  >
-                    {formatDate(wish.created_at)}
-                  </motion.p>
+                    <p className="mt-1 text-xs sm:text-sm leading-relaxed text-white/90 wrap-break-words">
+                      {wish.message}
+                    </p>
+
+                    <p className="mt-1.5 text-[10px] text-slate-400 font-mono">
+                      {formatDate(wish.created_at)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          );
+              </motion.div>
+            );
           })
         )}
       </motion.div>
