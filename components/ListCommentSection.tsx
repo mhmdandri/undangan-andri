@@ -53,8 +53,14 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
         }}
         className="relative z-10 mt-6 px-6 pb-24 max-h-[70dvh] overflow-y-auto space-y-6 pr-4"
       >
-        {wishes.map((wish, idx) => {
-          const isRight = idx % 2 !== 0;
+        {wishes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center text-white/70">
+            <p className="text-sm font-light tracking-wide">Belum ada ucapan dan doa.</p>
+            <p className="mt-1.5 text-xs text-white/50">Jadilah yang pertama menuliskan ucapan di form sebelumnya!</p>
+          </div>
+        ) : (
+          wishes.map((wish, idx) => {
+            const isRight = idx % 2 !== 0;
 
           // ambil inisial nama untuk avatar
           const initials = (wish.name || "A")
@@ -147,7 +153,8 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
               </div>
             </motion.div>
           );
-        })}
+          })
+        )}
       </motion.div>
 
       <motion.div

@@ -40,11 +40,17 @@ const HomePage = ({ guestName, data }: HomePageProps) => {
       });
       if (!res.ok) return;
       const json = await res.json();
-      setComments(json?.data ?? []);
+      if (Array.isArray(json?.data)) {
+        setComments(json.data);
+      }
     } catch (error) {
       console.error("Failed to refresh comments", error);
     }
   }, []);
+
+  useEffect(() => {
+    refreshComments();
+  }, [refreshComments]);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const verseRef = useRef<HTMLDivElement>(null);

@@ -18,24 +18,34 @@ type SearchParams = {
   [key: string]: string | string[] | undefined;
 };
 
-import { getServerApiUrl } from "@/utils/api";
+import { getServerApiUrl, getPublicApiUrl } from "@/utils/api";
 
 async function getComments(): Promise<Wish[]> {
-  try {
-    const apiUrl = getServerApiUrl();
-    const res = await fetch(`${apiUrl}/api/comments`, {
-      next: { revalidate: 30 },
-      signal: AbortSignal.timeout(2500),
-    });
-    if (!res.ok) {
-      return [];
+  const urls = Array.from(
+    new Set([
+      `${getServerApiUrl()}/api/comments`,
+      `${getPublicApiUrl()}/api/comments`,
+    ])
+  );
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        next: { revalidate: 10 },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json?.data)) {
+          return json.data;
+        }
+      }
+    } catch {
+      // Continue to next URL fallback if one fails
     }
-    const json = await res.json();
-    return json?.data ?? [];
-  } catch (err) {
-    console.error("Failed to fetch comments", err);
-    return [];
   }
+
+  return [];
 }
 
 function capitalizeWords(value: string): string {
