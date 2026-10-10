@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerApiUrl, getPublicApiUrl } from "@/utils/api";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const query = (
+    searchParams.get("q") ||
+    searchParams.get("search") ||
+    ""
+  ).trim().toLowerCase();
+
   const targetUrls = Array.from(
     new Set([
       `${getServerApiUrl()}/api/reservations`,
@@ -18,7 +25,7 @@ export async function GET() {
       });
 
       const rawText = await response.text();
-      let data: unknown = null;
+      let data: { data?: Array<{ name?: string; code?: string }> } | null = null;
       try {
         data = JSON.parse(rawText);
       } catch {
@@ -26,6 +33,24 @@ export async function GET() {
       }
 
       if (response.ok && data) {
+        // Jika terdapat parameter query pencarian, filter data di sisi server
+        if (query && Array.isArray(data.data)) {
+          const filtered = data.data.filter((item) => {
+            const matchesName = (item.name || "").toLowerCase().includes(query);
+            const matchesCode = (item.code || "").toLowerCase().includes(query);
+            return matchesName || matchesCode;
+          });
+
+          return NextResponse.json(
+            {
+              data: filtered,
+              message: "Search reservations successfully!",
+              total: filtered.length,
+            },
+            { status: response.status },
+          );
+        }
+
         return NextResponse.json(data, { status: response.status });
       }
     } catch {

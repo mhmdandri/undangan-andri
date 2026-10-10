@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "react-toastify";
 import {
@@ -36,10 +37,27 @@ type Guest = {
 };
 
 export default function GuestListPage() {
+  const searchParams = useSearchParams();
+
+  // Ambil query pencarian awal dari parameter URL jika ada (?code=, ?name=, ?q=)
+  const initialQuery = useMemo(() => {
+    if (!searchParams) return "";
+    return (
+      searchParams.get("code") ||
+      searchParams.get("name") ||
+      searchParams.get("q") ||
+      searchParams.get("search") ||
+      ""
+    );
+  }, [searchParams]);
+
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState<string>(
+    initialQuery.trim(),
+  );
   const [guests, setGuests] = useState<Guest[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<"all" | "hadir" | "belum">(
     "all",
   );
@@ -66,23 +84,32 @@ export default function GuestListPage() {
     };
   }, []);
 
-  // Fetch guest list from DB
-  const loadGuestData = useCallback(async () => {
-    const endpoints = Array.from(
-      new Set([
-        "/api/reservations",
-        "http://localhost:8888/api/reservations",
-        `${getPublicApiUrl()}/api/reservations`,
-      ]),
-    );
+  // Search debouncer & fetch: tunggu 350ms setelah user berhenti mengetik sebelum fetch dari API
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      const resetTimer = setTimeout(() => {
+        setDebouncedQuery("");
+        setGuests([]);
+        setIsLoading(false);
+        setErrorMessage("");
+      }, 0);
+      return () => clearTimeout(resetTimer);
+    }
 
-    let loaded = false;
-    for (const endpoint of endpoints) {
+    let isCancelled = false;
+
+    const timer = setTimeout(async () => {
+      setDebouncedQuery(trimmed);
+
       try {
-        const res = await fetch(endpoint, {
-          cache: "no-store",
-          signal: AbortSignal.timeout(6000),
-        });
+        const res = await fetch(
+          `/api/reservations?q=${encodeURIComponent(trimmed)}`,
+          {
+            cache: "no-store",
+            signal: AbortSignal.timeout(6000),
+          },
+        );
 
         const rawText = await res.text();
         let json: { data?: Guest[] } | null = null;
@@ -92,93 +119,68 @@ export default function GuestListPage() {
           json = null;
         }
 
-        if (res.ok && Array.isArray(json?.data)) {
+        if (res.ok && Array.isArray(json?.data) && !isCancelled) {
           const sorted = [...json.data].sort((a, b) =>
             a.name.localeCompare(b.name, "id", { sensitivity: "base" }),
           );
           setGuests(sorted);
-          setErrorMessage("");
           setIsLoading(false);
-          loaded = true;
-          break;
+          return;
         }
       } catch {
-        // Coba endpoint fallback berikutnya
+        // Fallback ke endpoint publik
       }
-    }
 
-    if (!loaded) {
-      setErrorMessage(
-        "Gagal memuat daftar tamu. Pastikan koneksi server backend stabil.",
-      );
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleRefresh = async () => {
-    setIsLoading(true);
-    await loadGuestData();
-  };
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    const fetchInitialGuests = async () => {
-      const endpoints = Array.from(
-        new Set([
-          "/api/reservations",
-          "http://localhost:8888/api/reservations",
+      try {
+        const fallbackRes = await fetch(
           `${getPublicApiUrl()}/api/reservations`,
-        ]),
-      );
-
-      let loaded = false;
-      for (const endpoint of endpoints) {
-        try {
-          const res = await fetch(endpoint, {
+          {
             cache: "no-store",
             signal: AbortSignal.timeout(6000),
-          });
-
-          const rawText = await res.text();
-          let json: { data?: Guest[] } | null = null;
-          try {
-            json = JSON.parse(rawText);
-          } catch {
-            json = null;
-          }
-
-          if (res.ok && Array.isArray(json?.data)) {
-            if (!isCancelled) {
-              const sorted = [...json.data].sort((a, b) =>
-                a.name.localeCompare(b.name, "id", { sensitivity: "base" }),
-              );
-              setGuests(sorted);
-              setErrorMessage("");
-              setIsLoading(false);
-            }
-            loaded = true;
-            break;
-          }
-        } catch {
-          // Coba fallback
+          },
+        );
+        const rawText = await fallbackRes.text();
+        const json = JSON.parse(rawText);
+        if (fallbackRes.ok && Array.isArray(json?.data) && !isCancelled) {
+          const q = trimmed.toLowerCase();
+          const matched = json.data.filter(
+            (g: Guest) =>
+              (g.name || "").toLowerCase().includes(q) ||
+              (g.code || "").toLowerCase().includes(q),
+          );
+          matched.sort((a: Guest, b: Guest) =>
+            a.name.localeCompare(b.name, "id", { sensitivity: "base" }),
+          );
+          setGuests(matched);
+          setIsLoading(false);
+          return;
         }
+      } catch {
+        // Fallback gagal
       }
 
-      if (!loaded && !isCancelled) {
+      if (!isCancelled) {
         setErrorMessage(
-          "Gagal memuat daftar tamu. Pastikan koneksi server backend stabil.",
+          "Gagal mencari data tamu. Pastikan koneksi server backend stabil.",
         );
         setIsLoading(false);
       }
-    };
-
-    void fetchInitialGuests();
+    }, 350);
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [searchQuery]);
+
+  const handleRefresh = () => {
+    if (searchQuery.trim()) {
+      setIsLoading(true);
+      const current = searchQuery;
+      setSearchQuery("");
+      setTimeout(() => setSearchQuery(current), 50);
+    }
+  };
 
   // Format tanggal & jam kedatangan
   const formatDateTime = (dateStr?: string | null) => {
@@ -197,11 +199,17 @@ export default function GuestListPage() {
     }
   };
 
-  // Filter daftar tamu berdasarkan pencarian & status kehadiran
+  // Status pencarian aktif
+  const isSearching =
+    debouncedQuery.length > 0 || searchQuery.trim().length > 0;
+
+  // Filter hasil pencarian berdasarkan status kehadiran
   const filteredGuests = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    if (!debouncedQuery) {
+      return [];
+    }
+
     return guests.filter((g) => {
-      const matchesName = (g.name || "").toLowerCase().includes(query);
       const isCheckedIn = Boolean(
         g.is_present || g.status?.toLowerCase() === "hadir",
       );
@@ -211,19 +219,9 @@ export default function GuestListPage() {
         (filterStatus === "hadir" && isCheckedIn) ||
         (filterStatus === "belum" && !isCheckedIn);
 
-      return matchesName && matchesStatus;
+      return matchesStatus;
     });
-  }, [guests, searchQuery, filterStatus]);
-
-  // Statistik
-  const stats = useMemo(() => {
-    const total = guests.length;
-    const hadir = guests.filter(
-      (g) => g.is_present || g.status?.toLowerCase() === "hadir",
-    ).length;
-    const belum = total - hadir;
-    return { total, hadir, belum };
-  }, [guests]);
+  }, [guests, debouncedQuery, filterStatus]);
 
   // Copy reservation code / link
   const handleCopy = async (textToCopy: string, code: string) => {
@@ -286,7 +284,7 @@ export default function GuestListPage() {
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold uppercase tracking-widest">
             <LuSparkles className="w-3.5 h-3.5" />
-            <span>Buku Tamu &amp; QR Tiket</span>
+            <span>Buku Tamu &amp; Kode QR</span>
           </div>
 
           <h1 className="font-playfair text-2xl sm:text-4xl font-bold text-white tracking-wide">
@@ -294,43 +292,11 @@ export default function GuestListPage() {
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Cari nama Anda di bawah ini untuk melihat status kehadiran dan
-            membuka{" "}
-            <span className="text-amber-300 font-medium">
-              QR Code Tiket Masuk
-            </span>{" "}
-            acara pernikahan Andri &amp; Cica.
+            Cari nama atau kode reservasi Anda di bawah ini untuk melihat status
+            kehadiran dan membuka{" "}
+            <span className="text-amber-300 font-medium">Kode QR</span> acara
+            pernikahan Andri &amp; Cica.
           </p>
-        </div>
-
-        {/* Quick Stats Pills */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-4 max-w-xl mx-auto">
-          <div className="bg-[#121622] border border-white/10 rounded-2xl p-3 text-center">
-            <span className="text-[10px] sm:text-xs text-slate-400 block uppercase font-medium">
-              Total Tamu
-            </span>
-            <span className="text-lg sm:text-2xl font-bold text-white font-mono">
-              {stats.total}
-            </span>
-          </div>
-
-          <div className="bg-[#121622] border border-emerald-500/20 rounded-2xl p-3 text-center">
-            <span className="text-[10px] sm:text-xs text-emerald-400/80 block uppercase font-medium">
-              Sudah Hadir
-            </span>
-            <span className="text-lg sm:text-2xl font-bold text-emerald-400 font-mono">
-              {stats.hadir}
-            </span>
-          </div>
-
-          <div className="bg-[#121622] border border-slate-700/50 rounded-2xl p-3 text-center">
-            <span className="text-[10px] sm:text-xs text-slate-400 block uppercase font-medium">
-              Belum Hadir
-            </span>
-            <span className="text-lg sm:text-2xl font-bold text-amber-300 font-mono">
-              {stats.belum}
-            </span>
-          </div>
         </div>
 
         {/* Search & Filter Bar */}
@@ -343,13 +309,24 @@ export default function GuestListPage() {
                 id="search-guest-input"
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama Anda di daftar tamu..."
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSearchQuery(val);
+                  if (val.trim()) {
+                    setIsLoading(true);
+                  }
+                }}
+                placeholder="Ketik nama Anda atau kode reservasi (contoh: Andri atau 03109)..."
                 className="w-full pl-10 pr-10 py-2.5 bg-black/40 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setDebouncedQuery("");
+                    setGuests([]);
+                    setIsLoading(false);
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded"
                   title="Hapus pencarian"
                 >
@@ -393,11 +370,11 @@ export default function GuestListPage() {
             </div>
           </div>
 
-          {searchQuery && (
+          {debouncedQuery && (
             <p className="text-xs text-slate-400 px-1">
               Menemukan{" "}
               <strong className="text-white">{filteredGuests.length}</strong>{" "}
-              tamu dengan kata kunci &quot;{searchQuery}&quot;
+              tamu dengan kata kunci &quot;{debouncedQuery}&quot;
             </p>
           )}
         </div>
@@ -406,7 +383,7 @@ export default function GuestListPage() {
         {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3 text-slate-400">
             <LuRefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
-            <p className="text-sm">Memuat daftar tamu dari database...</p>
+            <p className="text-sm">Mencari data tamu...</p>
           </div>
         ) : errorMessage ? (
           <div className="py-16 text-center space-y-3 bg-[#0e111a] border border-rose-500/20 rounded-2xl p-6">
@@ -418,24 +395,65 @@ export default function GuestListPage() {
               Coba Lagi
             </button>
           </div>
+        ) : !isSearching ? (
+          /* Tampilan awal: belum mencari, daftar sengaja dikosongkan untuk privasi tamu */
+          <div className="relative overflow-hidden bg-linear-to-b from-[#121622]/90 to-[#0e111a]/90 border border-amber-500/20 rounded-3xl p-8 sm:p-12 text-center shadow-2xl backdrop-blur-sm">
+            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 bg-amber-500/10 blur-3xl pointer-events-none rounded-full" />
+
+            <div className="relative z-10 max-w-md mx-auto space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 shadow-inner">
+                <LuSearch className="w-7 h-7" />
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-wide font-playfair">
+                  Cari Nama atau Kode QR Anda
+                </h3>
+                {/* <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Daftar tamu disembunyikan demi menjaga privasi. Silakan ketik
+                  nama lengkap Anda atau kode reservasi pada kolom pencarian di
+                  atas untuk melihat status kehadiran dan tiket QR.
+                </p> */}
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-300">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                  <LuUser className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    Pencarian dengan <strong>Nama</strong>
+                  </span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                  <LuQrCode className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    Pencarian dengan <strong>Kode QR</strong>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
         ) : filteredGuests.length === 0 ? (
-          <div className="py-16 text-center space-y-2 bg-[#0e111a] border border-white/10 rounded-2xl p-6">
-            <LuUser className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+          /* Pencarian dilakukan tapi tidak ditemukan */
+          <div className="py-16 text-center space-y-3 bg-[#0e111a] border border-white/10 rounded-2xl p-6 shadow-xl">
+            <div className="w-12 h-12 mx-auto rounded-full bg-white/5 flex items-center justify-center text-slate-500 mb-1">
+              <LuUser className="w-6 h-6" />
+            </div>
             <h3 className="text-base font-semibold text-white">
               Tidak ada tamu yang cocok
             </h3>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Pastikan ejaan nama Anda sudah benar sesuai dengan nama yang
-              terdaftar di undangan.
+            <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Tidak ditemukan data tamu untuk kata kunci &quot;
+              <span className="text-amber-300 font-medium">
+                {searchQuery.trim()}
+              </span>
+              &quot;. Pastikan ejaan nama atau kode reservasi Anda sudah benar.
             </p>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="mt-3 text-xs text-amber-400 hover:underline"
-              >
-                Reset Pencarian
-              </button>
-            )}
+            <button
+              onClick={() => setSearchQuery("")}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 rounded-xl text-xs font-semibold transition mt-2"
+            >
+              <span>Reset Pencarian</span>
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -475,6 +493,16 @@ export default function GuestListPage() {
                               {guest.quota_guests || guest.total_guests || 2}{" "}
                               Pax
                             </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] font-mono text-amber-400/90 font-medium">
+                              Kode: {guest.code}
+                            </span>
+                            {/* {guest.source && (
+                              <span className="text-[10px] text-slate-500 capitalize">
+                                • {guest.source}
+                              </span>
+                            )} */}
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
@@ -540,12 +568,18 @@ export default function GuestListPage() {
                             {guest.name}
                           </h3>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
-                          <LuUsers className="w-3.5 h-3.5 text-slate-500" />
-                          <span>
-                            Kuota:{" "}
-                            {guest.quota_guests || guest.total_guests || 2} Pax
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
+                          <span className="font-mono text-amber-400 font-medium">
+                            Kode: {guest.code}
                           </span>
+                          <span>•</span>
+                          <div className="flex items-center gap-1 text-slate-400">
+                            <LuUsers className="w-3.5 h-3.5 text-slate-500" />
+                            <span>
+                              {guest.quota_guests || guest.total_guests || 2}{" "}
+                              Pax
+                            </span>
+                          </div>
                         </div>
                       </div>
 
