@@ -137,13 +137,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.35 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
-          hidden: { opacity: 0, y: 18 },
+          hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.08 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="relative z-10 flex min-h-dvh items-center"

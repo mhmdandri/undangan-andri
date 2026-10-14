@@ -292,13 +292,17 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.35 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
-          hidden: { opacity: 0, y: 18 },
+          hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.08 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="relative z-10 flex min-h-dvh items-center"
@@ -307,7 +311,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
           className="mx-auto w-full max-w-md px-6 py-7 sm:py-8 text-center bg-black/40 border border-white/15 rounded-3xl backdrop-blur-md shadow-2xl"
           variants={{
             hidden: {},
-            show: { transition: { staggerChildren: 0.06 } },
+            show: { transition: { staggerChildren: 0.1 } },
           }}
         >
           {/* Eyebrow badge */}
@@ -315,7 +319,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
             className="inline-block text-[11px] sm:text-xs tracking-[0.25em] uppercase text-amber-300/90 font-medium font-sans mb-1"
             variants={{
               hidden: { opacity: 0, y: -4 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+              show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
             }}
           >
             R S V P
@@ -325,12 +329,12 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
           <motion.h2
             className="font-playfair text-2xl sm:text-3xl md:text-4xl font-normal tracking-wide text-white drop-shadow-md mb-2"
             variants={{
-              hidden: { opacity: 0, y: 8, scale: 0.996 },
+              hidden: { opacity: 0, y: 10, scale: 0.98 },
               show: {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                transition: { duration: 0.65 },
+                transition: { duration: 0.95, ease: [0.16, 1, 0.3, 1] },
               },
             }}
           >
@@ -342,7 +346,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
             className="flex items-center justify-center gap-2.5 mb-3 text-amber-200/60"
             variants={{
               hidden: { opacity: 0, scale: 0.8 },
-              show: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+              show: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
             }}
             aria-hidden="true"
           >
@@ -354,8 +358,8 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
           <motion.p
             className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-sm mx-auto mb-4"
             variants={{
-              hidden: { opacity: 0, y: 8 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+              hidden: { opacity: 0, y: 10 },
+              show: { opacity: 1, y: 0, transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] } },
             }}
           >
             Mohon konfirmasikan kehadiran Anda untuk membantu kami mempersiapkan

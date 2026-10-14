@@ -63,13 +63,17 @@ const DateSection: React.FC<DateSectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.35 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
           hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.1 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="absolute inset-x-0 bottom-30 z-10 flex flex-col items-center px-5 text-center max-w-sm sm:max-w-md mx-auto space-y-3"

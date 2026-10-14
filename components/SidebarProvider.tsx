@@ -29,6 +29,8 @@ export default function SidebarProvider() {
     return null;
   }
 
+  const isAdmin = pathname?.startsWith("/admin");
+
   return (
     <>
       {/* Sidebar (drawer) */}
@@ -50,7 +52,9 @@ export default function SidebarProvider() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-4 right-4 z-110"
+            className={`absolute top-4 right-4 z-110 ${
+              isAdmin ? "hidden md:block" : ""
+            }`}
           >
             <button
               onClick={() => {

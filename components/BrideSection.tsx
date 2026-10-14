@@ -46,13 +46,17 @@ const BrideSection: React.FC<BrideSectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.45 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
           hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.12 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="absolute inset-x-0 bottom-24 z-10 px-6"
@@ -60,8 +64,12 @@ const BrideSection: React.FC<BrideSectionProps> = ({
         <div className="max-w-md space-y-3.5">
           <motion.div
             variants={{
-              hidden: { opacity: 0, y: 8 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+              hidden: { opacity: 0, y: 12 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
             className="space-y-1"
           >
@@ -69,14 +77,14 @@ const BrideSection: React.FC<BrideSectionProps> = ({
               THE BRIDE
             </span>
             <motion.h1
-              className="text-2xl sm:text-3xl font-bold font-playfair tracking-wide text-white drop-shadow-md"
+              className="text-xl sm:text-2xl font-bold font-playfair tracking-wide text-white drop-shadow-md"
               variants={{
-                hidden: { opacity: 0, y: 12, scale: 0.996 },
+                hidden: { opacity: 0, y: 14, scale: 0.98 },
                 show: {
                   opacity: 1,
                   y: 0,
-                  scale: [1.02, 0.995, 1],
-                  transition: { duration: 0.8, ease: [0.2, 0.9, 0.2, 1] },
+                  scale: 1,
+                  transition: { duration: 1.15, ease: [0.16, 1, 0.3, 1] },
                 },
               }}
             >
@@ -84,7 +92,10 @@ const BrideSection: React.FC<BrideSectionProps> = ({
             </motion.h1>
 
             {/* Ornamen Garis Pembatas */}
-            <div className="flex items-center gap-2 text-amber-200/60 pt-1" aria-hidden="true">
+            <div
+              className="flex items-center gap-2 text-amber-200/60 pt-1"
+              aria-hidden="true"
+            >
               <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
               <span className="text-[10px] text-amber-300">✦</span>
               <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
@@ -94,15 +105,23 @@ const BrideSection: React.FC<BrideSectionProps> = ({
           <motion.div
             className="flex items-center gap-3"
             variants={{
-              hidden: { opacity: 0, y: 8 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+              hidden: { opacity: 0, y: 10 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
           >
             <motion.p
               className="italic text-xs sm:text-sm text-slate-300"
               variants={{
-                hidden: { x: -6, opacity: 0 },
-                show: { x: 0, opacity: 1, transition: { duration: 0.45 } },
+                hidden: { x: -8, opacity: 0 },
+                show: {
+                  x: 0,
+                  opacity: 1,
+                  transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+                },
               }}
             >
               Putri ke-1 dari 3 bersaudara
@@ -119,7 +138,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
                 show: {
                   scaleX: 1,
                   opacity: 1,
-                  transition: { duration: 0.55, ease: "easeOut" },
+                  transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
                 },
               }}
               style={{ transformOrigin: "left center" }}
@@ -130,8 +149,12 @@ const BrideSection: React.FC<BrideSectionProps> = ({
           <motion.p
             className="text-xs sm:text-sm text-slate-200 font-medium"
             variants={{
-              hidden: { opacity: 0, y: 10 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+              hidden: { opacity: 0, y: 12 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
           >
             Bapak Iwan &amp; Ibu Carsinah
@@ -139,12 +162,12 @@ const BrideSection: React.FC<BrideSectionProps> = ({
 
           <motion.div
             variants={{
-              hidden: { opacity: 0, y: 10, scale: 0.98 },
+              hidden: { opacity: 0, y: 12, scale: 0.96 },
               show: {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] },
+                transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
               },
             }}
           >

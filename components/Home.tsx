@@ -15,7 +15,7 @@ import RsvpSection from "./RsvpSection";
 import GallerySection from "./GallerySection";
 import LastSection from "./LastSection";
 import LoadingSection from "@/components/LoadingSection"; // <--- baru
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { LuMailOpen } from "react-icons/lu";
 
@@ -108,77 +108,90 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
   const handleLastScrollDown = () => scrollTo(lastRef);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     const criticalAssets = ["/1.jpg", "/2.JPG", "/3.JPG"];
 
-    const loadImage = (src: string) =>
-      new Promise<void>((resolve) => {
-        const img = new window.Image();
-        img.src = src;
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
-      });
-
-    let loadedCount = 0;
-    const total = criticalAssets.length;
-
-    const updateProgress = () => {
-      if (!mounted) return;
-      loadedCount++;
-      const pct = Math.min(90, Math.round((loadedCount / total) * 90));
-      setProgress(pct);
-    };
-
-    // Load critical assets in parallel with a 1.4s safety ceiling
-    const loadPromise = Promise.all(
-      criticalAssets.map((src) => loadImage(src).then(updateProgress)),
-    );
-
-    const timeoutPromise = new Promise<void>((resolve) =>
-      setTimeout(resolve, 1400),
-    );
-
-    Promise.race([loadPromise, timeoutPromise]).then(() => {
-      if (!mounted) return;
-      setProgress(100);
-      setTimeout(() => {
-        if (!mounted) return;
-        setLoading(false);
-      }, 250);
+    // Preload critical assets in the background
+    criticalAssets.forEach((src) => {
+      const img = new window.Image();
+      img.src = src;
     });
+
+    // Durasi loading tepat 5 detik
+    const totalDuration = 5000;
+    const intervalTime = 50;
+    const totalSteps = totalDuration / intervalTime;
+    let step = 0;
+
+    const timer = setInterval(() => {
+      if (!mounted) return;
+      step++;
+      // Kurva persentase ease-in-out yang lembut
+      const t = step / totalSteps;
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const currentPct = Math.min(100, Math.round(eased * 100));
+      setProgress(currentPct);
+
+      if (step >= totalSteps) {
+        clearInterval(timer);
+        setProgress(100);
+        setTimeout(() => {
+          if (!mounted) return;
+          setLoading(false);
+        }, 150);
+      }
+    }, intervalTime);
 
     return () => {
       mounted = false;
+      clearInterval(timer);
     };
   }, []);
 
   return (
     <>
-      {loading ? (
-        <LoadingSection
-          onNext={() => {
-            heroRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-          }}
-          onPrev={() => {}}
-          loading={loading}
-          progress={progress}
-          finishDelay={300}
-        />
-      ) : null}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            key="loading-screen"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black overflow-hidden"
+          >
+            <div className="relative h-dvh w-full max-w-sm overflow-hidden bg-black">
+              <LoadingSection
+                onNext={() => {}}
+                onPrev={() => {}}
+                loading={loading}
+                progress={progress}
+                finishDelay={200}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main
         aria-hidden={loading}
-        className={`relative flex h-dvh w-full items-stretch justify-center overflow-hidden bg-black transition-opacity ${
+        className={`relative flex h-dvh w-full items-stretch justify-center overflow-hidden bg-black transition-opacity duration-300 ${
           loading ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 1.06 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: false, amount: 0.25 }}
-          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={
+            !loading
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 1.05 }
+          }
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           className="absolute inset-0"
         >
           <Image
@@ -192,28 +205,19 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
 
         <div className="absolute inset-0 bg-black/60" aria-hidden />
 
-        {/* <div className="absolute z-50 top-0 right-0 my-3 mx-7">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 text-white cursor-pointer"
-          >
-            <RxHamburgerMenu className="w-5 h-5" />
-          </button>
-        </div> */}
-
         <motion.div
+          key={loading ? "cover-loading" : "cover-loaded"}
           initial="hidden"
-          animate="show"
+          animate={!loading ? "show" : "hidden"}
           variants={{
-            hidden: { opacity: 0, y: 20 },
+            hidden: { opacity: 0, y: 16 },
             show: {
               opacity: 1,
               y: 0,
               transition: {
-                duration: 0.8,
-                ease: "easeOut",
-                when: "beforeChildren",
-                staggerChildren: 0.15,
+                duration: 0.9,
+                ease: [0.16, 1, 0.3, 1],
+                staggerChildren: 0.1,
               },
             },
           }}
@@ -221,8 +225,12 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
         >
           <motion.section
             variants={{
-              hidden: { opacity: 0, y: 15 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
+              hidden: { opacity: 0, y: 16 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
             className="w-full text-center space-y-3"
           >
@@ -232,8 +240,13 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
 
             <motion.h1
               variants={{
-                hidden: { opacity: 0, y: 10 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
+                hidden: { opacity: 0, y: 12, scale: 0.98 },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
+                },
               }}
               className="text-4xl font-semibold font-alex-brush tracking-normal sm:text-5xl text-white drop-shadow-lg"
             >
@@ -257,8 +270,12 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
 
           <motion.section
             variants={{
-              hidden: { opacity: 0, y: 15 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
+              hidden: { opacity: 0, y: 18 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.95, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
             className="flex w-full flex-col items-center text-center space-y-4 mt-28"
           >
@@ -270,8 +287,12 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
 
               <motion.h2
                 variants={{
-                  hidden: { opacity: 0, y: 6 },
-                  show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
+                  hidden: { opacity: 0, y: 8 },
+                  show: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+                  },
                 }}
                 className="text-2xl sm:text-3xl font-semibold leading-snug font-alex-brush text-amber-200 drop-shadow-md"
               >
@@ -285,8 +306,13 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
 
             <motion.div
               variants={{
-                hidden: { opacity: 0, y: 8 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+                hidden: { opacity: 0, y: 10, scale: 0.96 },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+                },
               }}
             >
               <Link
@@ -305,7 +331,10 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
           <motion.div
             variants={{
               hidden: { opacity: 0 },
-              show: { opacity: 1, transition: { duration: 0.7 } },
+              show: {
+                opacity: 1,
+                transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
             className="text-xs uppercase tracking-[0.5em] text-white/60"
           >

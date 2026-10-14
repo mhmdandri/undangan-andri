@@ -59,13 +59,17 @@ const JourneySection: React.FC<JourneySectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.25 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
           hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.1 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="relative z-10 px-5 max-w-lg mx-auto pt-7 sm:pt-9 flex flex-col h-[calc(100dvh-5.5rem)]"
@@ -78,12 +82,12 @@ const JourneySection: React.FC<JourneySectionProps> = ({
           <motion.h2
             className="font-playfair text-2xl sm:text-3xl font-bold tracking-wide text-white drop-shadow-md"
             variants={{
-              hidden: { opacity: 0, y: 10, scale: 0.995 },
+              hidden: { opacity: 0, y: 12, scale: 0.98 },
               show: {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                transition: { duration: 0.7, ease: [0.2, 0.85, 0.2, 1] },
+                transition: { duration: 1.0, ease: [0.16, 1, 0.3, 1] },
               },
             }}
           >
@@ -106,7 +110,10 @@ const JourneySection: React.FC<JourneySectionProps> = ({
           className="flex-1 overflow-y-auto pr-1.5 custom-scroll mt-3.5 space-y-4"
           variants={{
             hidden: { opacity: 0 },
-            show: { opacity: 1, transition: { staggerChildren: 0.1 } },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.15 },
+            },
           }}
         >
           <div className="relative pl-5 ml-2.5 border-l-2 border-amber-400/40 space-y-3.5">
@@ -115,11 +122,11 @@ const JourneySection: React.FC<JourneySectionProps> = ({
                 key={index}
                 className="relative bg-black/40 border border-white/10 rounded-xl p-3.5 backdrop-blur-xs shadow-lg space-y-1.5"
                 variants={{
-                  hidden: { opacity: 0, x: 12 },
+                  hidden: { opacity: 0, x: 14 },
                   show: {
                     opacity: 1,
                     x: 0,
-                    transition: { duration: 0.5, ease: "easeOut" },
+                    transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
                   },
                 }}
               >

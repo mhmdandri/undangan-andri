@@ -44,13 +44,17 @@ const VerseSection: React.FC<VerseSectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.5 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
           hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.1 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="absolute inset-x-0 px-6 z-10 bottom-20 max-w-lg mx-auto space-y-2 text-center"
@@ -74,11 +78,11 @@ const VerseSection: React.FC<VerseSectionProps> = ({
 
         <motion.p
           variants={{
-            hidden: { opacity: 0, y: 8 },
+            hidden: { opacity: 0, y: 12 },
             show: {
               opacity: 1,
               y: 0,
-              transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] },
+              transition: { duration: 1.0, ease: [0.16, 1, 0.3, 1] },
             },
           }}
           className="text-xs sm:text-sm leading-relaxed text-slate-100 text-justify italic drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] px-1"
@@ -104,7 +108,7 @@ const VerseSection: React.FC<VerseSectionProps> = ({
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: false, amount: 0.2 }}
-        transition={{ duration: 0.55, delay: 0.15, ease: [0.25, 0.8, 0.25, 1] }}
+        transition={{ duration: 0.85, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="absolute z-10 inset-x-0 bottom-4 w-full px-6"
       >
         <FooterNav onNext={onNext} onPrev={onPrev} page="2/12" />

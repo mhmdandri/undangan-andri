@@ -9,11 +9,14 @@ export async function GET(request: NextRequest) {
     ""
   ).trim().toLowerCase();
 
+  const queryString = searchParams.toString();
+  const querySuffix = queryString ? `?${queryString}` : "";
+
   const targetUrls = Array.from(
     new Set([
-      `${getServerApiUrl()}/api/reservations`,
-      `${getPublicApiUrl()}/api/reservations`,
-      "http://localhost:8888/api/reservations",
+      `${getServerApiUrl()}/api/reservations${querySuffix}`,
+      `${getPublicApiUrl()}/api/reservations${querySuffix}`,
+      `http://localhost:8888/api/reservations${querySuffix}`,
     ]),
   );
 

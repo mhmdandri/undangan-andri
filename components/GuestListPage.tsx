@@ -261,7 +261,7 @@ export default function GuestListPage() {
             <span>Kembali ke Undangan</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <button
               onClick={handleRefresh}
               disabled={isLoading}
@@ -274,7 +274,7 @@ export default function GuestListPage() {
               />
               <span className="hidden sm:inline">Segarkan</span>
             </button>
-          </div>
+          </div> */}
         </div>
       </header>
 

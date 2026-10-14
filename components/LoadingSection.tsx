@@ -33,27 +33,19 @@ const LoadingSection: React.FC<LoadingSectionProps> = ({
   return (
     <section
       ref={verseRef}
-      className="relative h-dvh w-full text-white overflow-hidden"
+      className="relative h-dvh w-full max-w-sm mx-auto text-white overflow-hidden"
       aria-label="Loading screen"
     >
       <Image src="/3.JPG" alt="bride" fill className="object-cover" priority />
 
       <div className="absolute inset-0 bg-black/75" />
 
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center max-w-md mx-auto mt-32">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center max-w-sm mx-auto mt-32">
         <p className="uppercase tracking-[0.25em] text-sm text-white/60 mb-6">
           The Wedding Of
         </p>
 
         <div className="w-36 h-36 rounded-md overflow-hidden shadow-lg mb-6 border border-white/8">
-          {/* <Image
-            src="/media/prewed.png"
-            alt="couple thumbnail"
-            width={144}
-            height={144}
-            className="object-cover w-full h-full"
-            priority
-          /> */}
           <video
             className="object-cover w-full h-full"
             width={144}
@@ -82,7 +74,7 @@ const LoadingSection: React.FC<LoadingSectionProps> = ({
             >
               <div
                 style={{ width: `${pct}%` }}
-                className="h-full bg-white/90 rounded-full transition-all duration-500"
+                className="h-full bg-white/90 rounded-full transition-all duration-300"
               />
             </div>
           </div>
@@ -97,3 +89,4 @@ const LoadingSection: React.FC<LoadingSectionProps> = ({
 };
 
 export default LoadingSection;
+

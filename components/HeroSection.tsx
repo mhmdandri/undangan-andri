@@ -20,7 +20,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
       <motion.div
         initial={{ opacity: 0, scale: 1.06 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: false, amount: 0.25 }}
+        viewport={{ once: false, amount: 0.35 }}
         transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
         className="absolute inset-0"
       >
@@ -38,17 +38,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.5 }}
+        viewport={{ once: false, amount: 0.35 }}
         variants={{
-          hidden: { opacity: 0, y: 20 },
+          hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
             transition: {
-              duration: 0.7,
-              ease: "easeOut",
-              when: "beforeChildren",
-              staggerChildren: 0.12,
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
             },
           },
         }}
@@ -57,7 +56,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
         <motion.div
           variants={{
             hidden: { opacity: 0, scale: 0.8 },
-            show: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+            show: {
+              opacity: 1,
+              scale: 1,
+              transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+            },
           }}
           className="mx-auto h-12 w-12 rounded-full border border-amber-400/40 bg-amber-500/10 flex items-center justify-center shadow-lg shadow-amber-500/10"
         >
@@ -66,8 +69,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
 
         <motion.div
           variants={{
-            hidden: { opacity: 0, y: 8 },
-            show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+            hidden: { opacity: 0, y: 12 },
+            show: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+            },
           }}
           className="space-y-3"
         >
@@ -77,8 +84,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
 
           <motion.h2
             variants={{
-              hidden: { opacity: 0, y: 10 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.65 } },
+              hidden: { opacity: 0, y: 14, scale: 0.98 },
+              show: {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
             className="text-5xl sm:text-6xl font-semibold font-alex-brush text-white drop-shadow-xl"
           >
@@ -99,8 +111,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef, onScrollDown }) => {
 
         <motion.div
           variants={{
-            hidden: { opacity: 0, y: 12 },
-            show: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+            hidden: { opacity: 0, y: 14 },
+            show: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+            },
           }}
           className="pt-2"
         >

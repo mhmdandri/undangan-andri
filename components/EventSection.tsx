@@ -35,13 +35,17 @@ const EventSection: React.FC<EventSectionProps> = ({
       <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: false, amount: 0.35 }}
+        viewport={{ once: false, amount: 0.15 }}
         variants={{
           hidden: { opacity: 0, y: 16 },
           show: {
             opacity: 1,
             y: 0,
-            transition: { when: "beforeChildren", staggerChildren: 0.1 },
+            transition: {
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              staggerChildren: 0.08,
+            },
           },
         }}
         className="absolute inset-x-0 bottom-20 z-10 px-5 max-w-lg mx-auto space-y-3"
@@ -55,8 +59,12 @@ const EventSection: React.FC<EventSectionProps> = ({
           <motion.h2
             className="font-playfair text-xl sm:text-2xl font-bold tracking-wide text-white drop-shadow-md"
             variants={{
-              hidden: { opacity: 0, y: 8 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+              hidden: { opacity: 0, y: 12 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+              },
             }}
           >
             Sabtu, 21 November 2026
@@ -77,8 +85,12 @@ const EventSection: React.FC<EventSectionProps> = ({
         <motion.div
           className="grid grid-cols-2 gap-2.5"
           variants={{
-            hidden: { opacity: 0, y: 10 },
-            show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+            hidden: { opacity: 0, y: 14 },
+            show: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.95, ease: [0.16, 1, 0.3, 1] },
+            },
           }}
         >
           {/* Box Akad Nikah */}
@@ -99,7 +111,7 @@ const EventSection: React.FC<EventSectionProps> = ({
             </span>
             <div className="flex items-center justify-center gap-1.5 text-xs text-amber-200 font-mono font-medium pt-0.5">
               <LuClock className="w-3.5 h-3.5 text-amber-400" />
-              <span>11.00 WIB – Selesai</span>
+              <span>11.00 - 17.00 WIB</span>
             </div>
           </div>
         </motion.div>
@@ -108,8 +120,12 @@ const EventSection: React.FC<EventSectionProps> = ({
         <motion.div
           className="bg-black/50 border border-white/12 rounded-xl p-3 backdrop-blur-xs shadow-lg space-y-2 text-center"
           variants={{
-            hidden: { opacity: 0, y: 10 },
-            show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+            hidden: { opacity: 0, y: 14 },
+            show: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.95, ease: [0.16, 1, 0.3, 1] },
+            },
           }}
         >
           <div>
@@ -117,7 +133,8 @@ const EventSection: React.FC<EventSectionProps> = ({
               Turi Jaya Gang IV
             </h3>
             <p className="text-[11px] sm:text-xs leading-relaxed text-slate-300">
-              Jl. Turi Jaya Gang IV No 1, Sagara Makmur, Kec. Tarumajaya, Kab. Bekasi
+              Jl. Turi Jaya Gang IV No 1, Sagara Makmur, Kec. Tarumajaya, Kab.
+              Bekasi
             </p>
           </div>
 

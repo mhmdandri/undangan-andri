@@ -23,6 +23,7 @@ export default function QrCodeScanner({
   onError,
 }: QrCodeScannerProps) {
   const scannerId = "qr-code-reader-box";
+  const fileScannerId = "qr-file-upload-temp-container";
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStoppingRef = useRef<boolean>(false);
@@ -38,6 +39,7 @@ export default function QrCodeScanner({
   }, [onScan, onError]);
 
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [isProcessingFile, setIsProcessingFile] = useState<boolean>(false);
   const [cameras, setCameras] = useState<Array<{ id: string; label: string }>>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
   const [hasTorch, setHasTorch] = useState<boolean>(false);
@@ -226,19 +228,58 @@ export default function QrCodeScanner({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setIsProcessingFile(true);
+    setCameraError("");
+
     try {
-      setCameraError("");
-      const tempScanner =
-        scannerRef.current || new Html5Qrcode(scannerId, { verbose: false });
-      const decodedText = await tempScanner.scanFile(file, true);
+      let decodedText: string | null = null;
+
+      // 1. Coba Native BarcodeDetector jika didukung browser (Chrome/Edge/Android - instan & akurat)
+      type BarcodeDetectorType = new (options?: { formats: string[] }) => {
+        detect: (source: ImageBitmapSource | Blob) => Promise<Array<{ rawValue?: string }>>;
+      };
+      const win =
+        typeof window !== "undefined"
+          ? (window as unknown as { BarcodeDetector?: BarcodeDetectorType })
+          : {};
+
+      if (typeof win.BarcodeDetector === "function") {
+        try {
+          const barcodeDetector = new win.BarcodeDetector({ formats: ["qr_code"] });
+          const barcodes = await barcodeDetector.detect(file);
+          if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+            decodedText = barcodes[0].rawValue;
+          }
+        } catch {
+          // Fallback to Html5Qrcode jika BarcodeDetector gagal
+        }
+      }
+
+      // 2. Fallback menggunakan Html5Qrcode dengan container terpisah (tanpa mengganggu kamera utama)
+      if (!decodedText) {
+        const fileScanner = new Html5Qrcode(fileScannerId, { verbose: false });
+        try {
+          decodedText = await fileScanner.scanFile(file, false);
+        } finally {
+          try {
+            fileScanner.clear();
+          } catch {
+            // ignore cleanup error
+          }
+        }
+      }
+
       if (decodedText) {
         onScanRef.current?.(decodedText);
+      } else {
+        throw new Error("QR Code tidak terdeteksi");
       }
     } catch {
       setCameraError(
-        "Tidak menemukan QR Code pada gambar yang dipilih. Coba foto yang lebih jelas."
+        "Tidak menemukan QR Code pada foto yang dipilih. Pastikan foto memiliki pencahayaan cukup dan memuat QR Code yang jelas."
       );
     } finally {
+      setIsProcessingFile(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -255,6 +296,9 @@ export default function QrCodeScanner({
         onChange={handleFileUpload}
         className="hidden"
       />
+
+      {/* Hidden container dedicated for file QR scanning so it doesn't conflict with camera stream */}
+      <div id={fileScannerId} className="hidden" />
 
       {/* Viewfinder Viewport Container */}
       <div className="relative w-full aspect-square max-w-[320px] rounded-2xl overflow-hidden bg-black/60 border border-white/20 shadow-2xl flex items-center justify-center">
@@ -310,9 +354,10 @@ export default function QrCodeScanner({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition cursor-pointer"
+                disabled={isProcessingFile}
+                className="py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition cursor-pointer disabled:opacity-50"
               >
-                Pilih Foto QR dari Galeri
+                {isProcessingFile ? "Membaca Foto QR..." : "Pilih Foto QR dari Galeri"}
               </button>
             </div>
           </div>
@@ -377,11 +422,16 @@ export default function QrCodeScanner({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-medium transition cursor-pointer"
+          disabled={isProcessingFile}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-medium transition cursor-pointer disabled:opacity-50"
           title="Upload Foto QR"
         >
-          <BsImage className="text-xs" />
-          <span>Upload Foto QR</span>
+          {isProcessingFile ? (
+            <div className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <BsImage className="text-xs" />
+          )}
+          <span>{isProcessingFile ? "Membaca..." : "Upload Foto QR"}</span>
         </button>
       </div>
     </div>

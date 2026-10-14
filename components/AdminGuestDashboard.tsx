@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
 import { toast } from "react-toastify";
@@ -18,6 +24,10 @@ import {
   LuQrCode,
   LuArrowLeft,
   LuCheck,
+  LuChevronLeft,
+  LuChevronRight,
+  LuChevronsLeft,
+  LuChevronsRight,
 } from "react-icons/lu";
 import { FaWhatsapp } from "react-icons/fa";
 import { getPublicApiUrl } from "@/utils/api";
@@ -60,13 +70,32 @@ export default function AdminGuestDashboard() {
   );
 
   // State Database Tamu
+  // State Database Tamu & Pagination
   const [dbGuests, setDbGuests] = useState<ImportedGuest[]>([]);
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [filterSource, setFilterSource] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+  const [serverStats, setServerStats] = useState<{
+    total?: number;
+    hadir?: number;
+    preReg?: number;
+    selfReg?: number;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Debounce search query 400ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Enable normal scrolling for admin dashboard
   useEffect(() => {
@@ -88,54 +117,118 @@ export default function AdminGuestDashboard() {
     };
   }, []);
 
-  // Load Database Guests on mount or tab change
-  const fetchDbGuests = async () => {
-    setIsLoadingDb(true);
-    const endpoints = Array.from(
-      new Set([
-        "/api/reservations",
-        "http://localhost:8888/api/reservations",
-        `${getPublicApiUrl()}/api/reservations`,
-      ]),
-    );
+  // Load Database Guests with server-side pagination per 25 list
+  const fetchDbGuests = useCallback(
+    async (
+      page: number = 1,
+      query: string = "",
+      source: string = "all",
+      status: string = "all",
+    ) => {
+      setIsLoadingDb(true);
 
-    let loaded = false;
-    for (const url of endpoints) {
-      try {
-        const res = await fetch(url, {
-          cache: "no-store",
-          signal: AbortSignal.timeout(6000),
-        });
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("limit", "25");
+      if (query.trim()) params.set("q", query.trim());
+      if (source && source !== "all") params.set("source", source);
+      if (status && status !== "all") params.set("status", status);
 
-        const rawText = await res.text();
-        let json: { data?: ImportedGuest[] } | null = null;
+      const queryString = params.toString() ? `?${params.toString()}` : "";
+
+      const endpoints = Array.from(
+        new Set([
+          `/api/reservations${queryString}`,
+          `http://localhost:8888/api/reservations${queryString}`,
+          `${getPublicApiUrl()}/api/reservations${queryString}`,
+        ]),
+      );
+
+      let loaded = false;
+      for (const url of endpoints) {
         try {
-          json = JSON.parse(rawText);
+          const res = await fetch(url, {
+            cache: "no-store",
+            signal: AbortSignal.timeout(6000),
+          });
+
+          const rawText = await res.text();
+          let json: {
+            data?: ImportedGuest[];
+            pagination?: {
+              page?: number;
+              limit?: number;
+              total_records?: number;
+              total_pages?: number;
+            };
+            total?: number;
+            page?: number;
+            total_pages?: number;
+            stats?: {
+              total?: number;
+              hadir?: number;
+              pre_registered?: number;
+              self_registered?: number;
+            };
+          } | null = null;
+          try {
+            json = JSON.parse(rawText);
+          } catch {
+            json = null;
+          }
+
+          if (res.ok && Array.isArray(json?.data)) {
+            setDbGuests(json.data);
+            const resPage = json.pagination?.page ?? json.page ?? page;
+            const resTotalPages =
+              json.pagination?.total_pages ?? json.total_pages ?? 1;
+            const resTotalRecords =
+              json.pagination?.total_records ?? json.total ?? json.data.length;
+
+            setCurrentPage(resPage);
+            setTotalPages(resTotalPages);
+            setTotalRecords(resTotalRecords);
+
+            if (json.stats) {
+              setServerStats({
+                total: json.stats.total ?? resTotalRecords,
+                hadir: json.stats.hadir ?? 0,
+                preReg: json.stats.pre_registered ?? 0,
+                selfReg: json.stats.self_registered ?? 0,
+              });
+            }
+
+            loaded = true;
+            break;
+          }
         } catch {
-          json = null;
+          // Try next endpoint fallback
         }
-
-        if (res.ok && Array.isArray(json?.data)) {
-          setDbGuests(json.data);
-          loaded = true;
-          break;
-        }
-      } catch {
-        // Try next endpoint fallback
       }
-    }
 
-    if (!loaded) {
-      toast.error("Gagal mengambil data reservasi dari server backend.");
-    }
-    setIsLoadingDb(false);
-  };
+      if (!loaded) {
+        toast.error("Gagal mengambil data reservasi dari server backend.");
+      }
+      setIsLoadingDb(false);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (activeTab === "database") {
-      fetchDbGuests();
+      fetchDbGuests(1, debouncedSearch, filterSource, filterStatus);
     }
-  }, [activeTab]);
+  }, [activeTab, debouncedSearch, filterSource, filterStatus, fetchDbGuests]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      fetchDbGuests(newPage, debouncedSearch, filterSource, filterStatus);
+      const el = document.getElementById("guest-database-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
 
   // Smart cleaner untuk nomor telepon / WhatsApp dari Excel
   const cleanPhoneValue = (val: unknown): string => {
@@ -632,16 +725,82 @@ Salam hangat,
     });
   }, [dbGuests, searchQuery, filterSource, filterStatus]);
 
+  // Export Seluruh Tamu Database ke Excel (mengambil parameter all=true)
+  const handleExportAllDbGuests = async () => {
+    setIsLoadingDb(true);
+    try {
+      const endpoints = [
+        "/api/reservations?all=true",
+        "http://localhost:8888/api/reservations?all=true",
+        `${getPublicApiUrl()}/api/reservations?all=true`,
+      ];
+      let exported = false;
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, { cache: "no-store" });
+          const raw = await res.text();
+          let json: { data?: ImportedGuest[] } | null = null;
+          try {
+            json = JSON.parse(raw);
+          } catch {
+            json = null;
+          }
+          if (res.ok && Array.isArray(json?.data) && json.data.length > 0) {
+            handleExportResult(json.data);
+            toast.success(
+              `Berhasil mengekspor seluruh ${json.data.length} tamu!`,
+            );
+            exported = true;
+            break;
+          }
+        } catch {
+          // fallback
+        }
+      }
+      if (!exported) {
+        handleExportResult(dbGuests);
+      }
+    } catch {
+      handleExportResult(dbGuests);
+    } finally {
+      setIsLoadingDb(false);
+    }
+  };
+
+  // Helper Pagination Pages Range
+  const getPaginationRange = (current: number, total: number) => {
+    if (total <= 5) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, "...", total);
+    } else if (current >= total - 2) {
+      pages.push(1, "...", total - 3, total - 2, total - 1, total);
+    } else {
+      pages.push(1, "...", current - 1, current, current + 1, "...", total);
+    }
+    return pages;
+  };
+
   // Statistik Database
   const stats = useMemo(() => {
-    const total = dbGuests.length;
+    if (serverStats && serverStats.total !== undefined) {
+      return {
+        total: serverStats.total,
+        hadir: serverStats.hadir ?? 0,
+        preReg: serverStats.preReg ?? 0,
+        selfReg: serverStats.selfReg ?? 0,
+      };
+    }
+    const total = totalRecords || dbGuests.length;
     const hadir = dbGuests.filter(
       (g) => g.is_present || g.status?.toLowerCase() === "hadir",
     ).length;
     const preReg = dbGuests.filter((g) => g.source === "pre_registered").length;
     const selfReg = total - preReg;
     return { total, hadir, preReg, selfReg };
-  }, [dbGuests]);
+  }, [serverStats, totalRecords, dbGuests]);
 
   return (
     <div className="min-h-screen w-full bg-[#08090d] text-slate-100 font-sans pb-36 selection:bg-amber-500/30 selection:text-amber-200 overflow-x-hidden overflow-y-auto">
@@ -712,7 +871,7 @@ Salam hangat,
               }`}
             >
               <LuCircleCheck className="w-4 h-4" />
-              <span>Semua Tamu ({dbGuests.length})</span>
+              <span>Semua Tamu ({totalRecords || dbGuests.length})</span>
             </button>
           </div>
 
@@ -994,7 +1153,9 @@ Salam hangat,
                         {guest.phone && (
                           <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
                             <span>WA:</span>
-                            <span className="text-slate-200">{guest.phone}</span>
+                            <span className="text-slate-200">
+                              {guest.phone}
+                            </span>
                           </div>
                         )}
 
@@ -1158,7 +1319,7 @@ Salam hangat,
         {/* TAB 2: SEMUA TAMU (DATABASE REPOSITORI) */}
         {/* ========================================================================= */}
         {activeTab === "database" && (
-          <div className="space-y-6">
+          <div id="guest-database-section" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-4">
@@ -1228,7 +1389,14 @@ Salam hangat,
                 </select>
 
                 <button
-                  onClick={fetchDbGuests}
+                  onClick={() =>
+                    fetchDbGuests(
+                      currentPage,
+                      debouncedSearch,
+                      filterSource,
+                      filterStatus,
+                    )
+                  }
                   disabled={isLoadingDb}
                   className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition shrink-0"
                   title="Refresh Data"
@@ -1239,8 +1407,9 @@ Salam hangat,
                 </button>
 
                 <button
-                  onClick={() => handleExportResult(dbGuests)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition shrink-0"
+                  onClick={handleExportAllDbGuests}
+                  disabled={isLoadingDb}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition shrink-0 disabled:opacity-50"
                   title="Export Semua Tamu ke Excel"
                 >
                   <LuDownload className="w-4 h-4" />
@@ -1274,7 +1443,9 @@ Salam hangat,
                         <div className="flex items-start justify-between gap-2.5">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="text-slate-500 font-mono text-xs">#{idx + 1}</span>
+                              <span className="text-slate-500 font-mono text-xs">
+                                #{(currentPage - 1) * 25 + idx + 1}
+                              </span>
                               <h3 className="font-semibold text-white text-base leading-snug">
                                 {guest.name}
                               </h3>
@@ -1284,7 +1455,8 @@ Salam hangat,
                                 {guest.code}
                               </span>
                               <span className="text-[11px] text-slate-400">
-                                {guest.total_guests || guest.quota_guests || 1} Pax
+                                {guest.total_guests || guest.quota_guests || 1}{" "}
+                                Pax
                               </span>
                             </div>
                           </div>
@@ -1304,7 +1476,9 @@ Salam hangat,
 
                         {/* Status Check-in & RSVP */}
                         <div className="flex items-center justify-between text-xs pt-1 border-t border-white/5">
-                          <span className="text-slate-400">Status Check-in:</span>
+                          <span className="text-slate-400">
+                            Status Check-in:
+                          </span>
                           <div className="flex flex-col items-end">
                             {isCheckedIn ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
@@ -1316,11 +1490,12 @@ Salam hangat,
                                 Belum Hadir
                               </span>
                             )}
-                            {guest.status === "konfirmasi_hadir" && !isCheckedIn && (
-                              <span className="text-[10px] text-amber-300 font-medium mt-0.5">
-                                (RSVP: Akan Hadir)
-                              </span>
-                            )}
+                            {guest.status === "konfirmasi_hadir" &&
+                              !isCheckedIn && (
+                                <span className="text-[10px] text-amber-300 font-medium mt-0.5">
+                                  (RSVP: Akan Hadir)
+                                </span>
+                              )}
                             {guest.status === "tidak_datang" && (
                               <span className="text-[10px] text-rose-400 font-medium mt-0.5">
                                 (RSVP: Tidak Hadir)
@@ -1418,14 +1593,16 @@ Salam hangat,
                               className="hover:bg-white/2 transition"
                             >
                               <td className="py-3 px-4 text-slate-500 font-mono text-xs">
-                                {idx + 1}
+                                {(currentPage - 1) * 25 + idx + 1}
                               </td>
                               <td className="py-3 px-4">
                                 <span className="font-semibold text-white block">
                                   {guest.name}
                                 </span>
                                 <span className="text-[11px] text-slate-400">
-                                  {guest.total_guests || guest.quota_guests || 1}{" "}
+                                  {guest.total_guests ||
+                                    guest.quota_guests ||
+                                    1}{" "}
                                   pax
                                 </span>
                               </td>
@@ -1463,17 +1640,19 @@ Salam hangat,
                                     </span>
                                   )}
 
-                                  {guest.status === "konfirmasi_hadir" && !isCheckedIn && (
-                                    <span className="text-[10px] text-amber-300 font-medium">
-                                      RSVP: Akan Hadir
-                                    </span>
-                                  )}
+                                  {guest.status === "konfirmasi_hadir" &&
+                                    !isCheckedIn && (
+                                      <span className="text-[10px] text-amber-300 font-medium">
+                                        RSVP: Akan Hadir
+                                      </span>
+                                    )}
                                   {guest.status === "tidak_datang" && (
                                     <span className="text-[10px] text-rose-400 font-medium">
                                       RSVP: Tidak Hadir
                                     </span>
                                   )}
-                                  {(!guest.status || guest.status === "belum_konfirmasi") && (
+                                  {(!guest.status ||
+                                    guest.status === "belum_konfirmasi") && (
                                     <span className="text-[10px] text-slate-500">
                                       RSVP: Belum Konfirmasi
                                     </span>
@@ -1538,6 +1717,102 @@ Salam hangat,
                         })}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                  {/* Left / Info Text */}
+                  <div className="text-xs text-slate-400 text-center sm:text-left">
+                    Menampilkan{" "}
+                    <span className="font-semibold text-white font-mono">
+                      {totalRecords === 0 ? 0 : (currentPage - 1) * 25 + 1}
+                    </span>{" "}
+                    -{" "}
+                    <span className="font-semibold text-white font-mono">
+                      {Math.min(currentPage * 25, totalRecords)}
+                    </span>{" "}
+                    dari{" "}
+                    <span className="font-semibold text-amber-300 font-mono">
+                      {totalRecords}
+                    </span>{" "}
+                    tamu
+                  </div>
+
+                  {/* Buttons Navigation */}
+                  <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
+                    {/* First Page */}
+                    <button
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage <= 1 || isLoadingDb}
+                      className="p-2 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      title="Halaman Pertama"
+                    >
+                      <LuChevronsLeft className="w-4 h-4" />
+                    </button>
+
+                    {/* Previous Page */}
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1 || isLoadingDb}
+                      className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-white/10 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      title="Halaman Sebelumnya"
+                    >
+                      <LuChevronLeft className="w-4 h-4" />
+                      <span className="hidden xs:inline">Prev</span>
+                    </button>
+
+                    {/* Page Numbers */}
+                    {getPaginationRange(currentPage, totalPages).map(
+                      (p, idx) => {
+                        if (p === "...") {
+                          return (
+                            <span
+                              key={`dots-${idx}`}
+                              className="px-2 py-1 text-slate-600 font-mono text-xs select-none"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+                        const pageNum = Number(p);
+                        const isActive = pageNum === currentPage;
+                        return (
+                          <button
+                            key={`page-${pageNum}`}
+                            onClick={() => handlePageChange(pageNum)}
+                            disabled={isLoadingDb}
+                            className={`min-w-8 h-8 px-2 rounded-xl text-xs font-mono font-medium transition ${
+                              isActive
+                                ? "bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/20"
+                                : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/5"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      },
+                    )}
+
+                    {/* Next Page */}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= totalPages || isLoadingDb}
+                      className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-white/10 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      title="Halaman Selanjutnya (Next Page)"
+                    >
+                      <LuChevronRight className="w-4 h-4" />
+                    </button>
+
+                    {/* Last Page */}
+                    <button
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage >= totalPages || isLoadingDb}
+                      className="p-2 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      title="Halaman Terakhir"
+                    >
+                      <LuChevronsRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
