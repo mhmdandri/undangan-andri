@@ -22,6 +22,7 @@ import {
   LuSparkles,
 } from "react-icons/lu";
 import { getPublicApiUrl } from "@/utils/api";
+import { buildInvitationUrl, buildInvitationPath } from "@/utils/invitation";
 
 type Guest = {
   id?: number;
@@ -668,81 +669,85 @@ export default function GuestListPage() {
               </p>
 
               {/* QR Code Container */}
-              <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-2xl max-w-[220px] mx-auto my-3">
-                <Image
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(
-                    `https://weddingofandricica.me?code=${selectedGuest.code}`,
-                  )}`}
-                  alt={`QR Code ${selectedGuest.name}`}
-                  width={250}
-                  height={250}
-                  unoptimized
-                  className="w-48 h-48 object-contain mx-auto"
-                />
-              </div>
+              {(() => {
+                const inviteUrl = buildInvitationUrl(selectedGuest.name, selectedGuest.code);
+                const invitePath = buildInvitationPath(selectedGuest.name, selectedGuest.code);
 
-              <p className="text-[11px] text-slate-400 leading-relaxed mb-3 px-2">
-                Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi
-                resepsi pernikahan Andri &amp; Cica.
-              </p>
+                return (
+                  <>
+                    <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-2xl max-w-[220px] mx-auto my-3">
+                      <Image
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(
+                          inviteUrl,
+                        )}`}
+                        alt={`QR Code ${selectedGuest.name}`}
+                        width={250}
+                        height={250}
+                        unoptimized
+                        className="w-48 h-48 object-contain mx-auto"
+                      />
+                    </div>
 
-              {/* Code Box */}
-              <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 mb-4">
-                <span className="text-[10px] text-amber-300/80 block uppercase font-mono tracking-wider">
-                  KODE RESERVASI
-                </span>
-                <span className="text-2xl font-mono font-bold text-amber-300 tracking-widest">
-                  {selectedGuest.code}
-                </span>
-              </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed mb-3 px-2">
+                      Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi
+                      resepsi pernikahan Andri &amp; Cica.
+                    </p>
 
-              {/* Action Buttons */}
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <a
-                    href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=${encodeURIComponent(
-                      `https://weddingofandricica.me?code=${selectedGuest.code}`,
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={`QR_${selectedGuest.name}_${selectedGuest.code}.png`}
-                    className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 text-center flex items-center justify-center gap-1.5"
-                  >
-                    <LuDownload className="w-3.5 h-3.5" />
-                    <span>Unduh QR</span>
-                  </a>
+                    {/* Code Box */}
+                    <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 mb-4">
+                      <span className="text-[10px] text-amber-300/80 block uppercase font-mono tracking-wider">
+                        KODE RESERVASI
+                      </span>
+                      <span className="text-2xl font-mono font-bold text-amber-300 tracking-widest">
+                        {selectedGuest.code}
+                      </span>
+                    </div>
 
-                  <button
-                    onClick={() =>
-                      handleCopy(
-                        `https://weddingofandricica.me?code=${selectedGuest.code}`,
-                        selectedGuest.code,
-                      )
-                    }
-                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5"
-                    title="Salin Link Undangan"
-                  >
-                    {copiedCode === selectedGuest.code ? (
-                      <LuCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <LuCopy className="w-3.5 h-3.5 text-slate-300" />
-                    )}
-                    <span>
-                      {copiedCode === selectedGuest.code
-                        ? "Tersalin"
-                        : "Salin Link"}
-                    </span>
-                  </button>
-                </div>
+                    {/* Action Buttons */}
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=${encodeURIComponent(
+                            inviteUrl,
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={`QR_${selectedGuest.name}_${selectedGuest.code}.png`}
+                          className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 text-center flex items-center justify-center gap-1.5"
+                        >
+                          <LuDownload className="w-3.5 h-3.5" />
+                          <span>Unduh QR</span>
+                        </a>
 
-                <Link
-                  href={`/${encodeURIComponent(selectedGuest.name)}?code=${selectedGuest.code}`}
-                  className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5"
-                >
-                  <LuExternalLink className="w-3.5 h-3.5" />
-                  <span>Buka Halaman Undangan Tamu</span>
-                </Link>
-              </div>
+                        <button
+                          onClick={() => handleCopy(inviteUrl, selectedGuest.code)}
+                          className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5"
+                          title="Salin Link Undangan"
+                        >
+                          {copiedCode === selectedGuest.code ? (
+                            <LuCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <LuCopy className="w-3.5 h-3.5 text-slate-300" />
+                          )}
+                          <span>
+                            {copiedCode === selectedGuest.code
+                              ? "Tersalin"
+                              : "Salin Link"}
+                          </span>
+                        </button>
+                      </div>
+
+                      <Link
+                        href={invitePath}
+                        className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5"
+                      >
+                        <LuExternalLink className="w-3.5 h-3.5" />
+                        <span>Buka Halaman Undangan Tamu</span>
+                      </Link>
+                    </div>
+                  </>
+                );
+              })()}
             </motion.div>
           </div>
         )}

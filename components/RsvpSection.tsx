@@ -7,6 +7,7 @@ import Modal from "./Modal";
 import { LuCopy, LuCopyCheck } from "react-icons/lu";
 import LazyBackgroundVideo from "./LazyBackgroundVideo";
 import { getPublicApiUrl } from "@/utils/api";
+import { buildInvitationUrl } from "@/utils/invitation";
 import Image from "next/image";
 
 type RsvpSectionProps = {
@@ -220,52 +221,62 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 </div>
 
                 {/* QR Code Container */}
-                <div className="bg-white p-3 rounded-2xl border-2 border-amber-400 shadow-xl max-w-[200px] mx-auto flex flex-col items-center">
-                  <Image
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(
-                      `https://weddingofandricica.me?code=${reservationCode}`,
-                    )}`}
-                    alt={`QR Code Tiket ${reservationCode}`}
-                    width={220}
-                    height={220}
-                    unoptimized
-                    className="w-40 h-40 object-contain mx-auto"
-                  />
-                </div>
+                {(() => {
+                  const ticketInviteUrl = buildInvitationUrl(
+                    name,
+                    reservationCode,
+                  );
+                  return (
+                    <>
+                      <div className="bg-white p-3 rounded-2xl border-2 border-amber-400 shadow-xl max-w-[200px] mx-auto flex flex-col items-center">
+                        <Image
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(
+                            ticketInviteUrl,
+                          )}`}
+                          alt={`QR Code Tiket ${reservationCode}`}
+                          width={220}
+                          height={220}
+                          unoptimized
+                          className="w-40 h-40 object-contain mx-auto"
+                        />
+                      </div>
 
-                <div className="p-3 bg-white/10 border border-white/20 rounded-xl text-center flex flex-col items-center space-y-1">
-                  <span className="text-[10px] text-amber-300 font-medium tracking-wider uppercase">
-                    KODE RESERVASI
-                  </span>
-                  <div className="flex gap-3 items-center justify-center">
-                    <span className="font-mono text-2xl font-bold text-amber-200 tracking-widest select-all">
-                      {reservationCode}
-                    </span>
-                    <button
-                      onClick={handleCopy}
-                      className="p-1 rounded hover:bg-white/10 text-white/90 transition"
-                      title="Salin Kode"
-                    >
-                      {copied ? (
-                        <LuCopyCheck className="w-5 h-5 text-emerald-400" />
-                      ) : (
-                        <LuCopy className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      <div className="p-3 bg-white/10 border border-white/20 rounded-xl text-center flex flex-col items-center space-y-1">
+                        <span className="text-[10px] text-amber-300 font-medium tracking-wider uppercase">
+                          KODE RESERVASI
+                        </span>
+                        <div className="flex gap-3 items-center justify-center">
+                          <span className="font-mono text-2xl font-bold text-amber-200 tracking-widest select-all">
+                            {reservationCode}
+                          </span>
+                          <button
+                            onClick={handleCopy}
+                            className="p-1 rounded hover:bg-white/10 text-white/90 transition"
+                            title="Salin Kode"
+                          >
+                            {copied ? (
+                              <LuCopyCheck className="w-5 h-5 text-emerald-400" />
+                            ) : (
+                              <LuCopy className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
 
-                <a
-                  href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=15&data=${encodeURIComponent(
-                    `https://weddingofandricica.me?code=${reservationCode}`,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={`QR_Checkin_${reservationCode}.png`}
-                  className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center transition shadow-md"
-                >
-                  Simpan / Unduh Gambar QR Code
-                </a>
+                      <a
+                        href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=15&data=${encodeURIComponent(
+                          ticketInviteUrl,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={`QR_Checkin_${reservationCode}.png`}
+                        className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center transition shadow-md"
+                      >
+                        Simpan / Unduh Gambar QR Code
+                      </a>
+                    </>
+                  );
+                })()}
               </>
             ) : (
               <div className="text-center py-4 space-y-3">

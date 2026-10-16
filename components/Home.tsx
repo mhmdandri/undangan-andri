@@ -123,8 +123,8 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
       img.src = src;
     });
 
-    // Durasi loading tepat 5 detik
-    const totalDuration = 5000;
+    // Durasi loading tepat 3 detik
+    const totalDuration = 3000;
     const intervalTime = 50;
     const totalSteps = totalDuration / intervalTime;
     let step = 0;

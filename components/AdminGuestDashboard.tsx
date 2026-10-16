@@ -28,9 +28,15 @@ import {
   LuChevronRight,
   LuChevronsLeft,
   LuChevronsRight,
+  LuUserPlus,
+  LuUser,
+  LuMail,
+  LuPhone,
+  LuSparkles,
 } from "react-icons/lu";
 import { FaWhatsapp } from "react-icons/fa";
 import { getPublicApiUrl } from "@/utils/api";
+import { buildInvitationUrl, buildWhatsappShareUrl } from "@/utils/invitation";
 import Image from "next/image";
 
 type ExcelGuestRow = {
@@ -57,7 +63,19 @@ type ImportedGuest = {
 };
 
 export default function AdminGuestDashboard() {
-  const [activeTab, setActiveTab] = useState<"import" | "database">("import");
+  const [activeTab, setActiveTab] = useState<"import" | "database" | "add">(
+    "import",
+  );
+
+  // State Tambah Tamu Dadakan (Input Langsung Tanpa Excel)
+  const [addName, setAddName] = useState<string>("");
+  const [addPhone, setAddPhone] = useState<string>("");
+  const [addEmail, setAddEmail] = useState<string>("");
+  const [addQuota, setAddQuota] = useState<number>(2);
+  const [addDirectCheckIn, setAddDirectCheckIn] = useState<boolean>(false);
+  const [isAdding, setIsAdding] = useState<boolean>(false);
+  const [newlyCreatedGuest, setNewlyCreatedGuest] =
+    useState<ImportedGuest | null>(null);
 
   // State Import
   const [parsedRows, setParsedRows] = useState<ExcelGuestRow[]>([]);
@@ -263,44 +281,14 @@ export default function AdminGuestDashboard() {
     return digits;
   };
 
-  // Normalizer Nomor WhatsApp (e.g. 0812... -> 62812...)
-  const formatWhatsappNumber = (phoneStr: string): string => {
-    let clean = (phoneStr || "").replace(/\D/g, "");
-    if (clean.startsWith("0")) {
-      clean = "62" + clean.slice(1);
-    } else if (clean.startsWith("8")) {
-      clean = "62" + clean;
-    }
-    return clean;
-  };
-
   // Generate Link WhatsApp dengan template pesan undangan pernikahan
   const generateWaLink = (
     phone: string,
     name: string,
     code: string,
-    inviteUrl: string,
+    inviteUrl?: string,
   ) => {
-    const cleanPhone = formatWhatsappNumber(phone);
-    const text = `Kepada Yth. *${name}*,
-
-Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada pernikahan kami:
-
-*The Wedding of Andri & Cica*
-📅 Sabtu, 21 November 2026
-
-Berikut tautan undangan digital dan tiket check-in reservasi Anda:
-🔗 ${inviteUrl || `https://weddingofandricica.me?code=${code}`}
-
-*Kode Reservasi Masuk:* *${code}*
-(Tunjukkan QR Code di undangan ini saat tiba di meja penerima tamu).
-
-Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Anda berkenan hadir. Terima kasih.
-
-Salam hangat,
-*Andri & Cica*`;
-
-    return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
+    return buildWhatsappShareUrl(phone, name, code, inviteUrl);
   };
 
   // Copy helper
@@ -350,6 +338,134 @@ Salam hangat,
 
     XLSX.writeFile(workbook, "Template_Import_Tamu_Undangan.xlsx");
     toast.info("Template Excel berhasil diunduh!");
+  };
+
+  // Reset formulir tambah tamu
+  const handleResetAddForm = () => {
+    setAddName("");
+    setAddPhone("");
+    setAddEmail("");
+    setAddQuota(2);
+    setAddDirectCheckIn(false);
+    setNewlyCreatedGuest(null);
+  };
+
+  // Submit tambah tamu dadakan ke API (http://localhost:8888/api/reservations)
+  const handleAddGuest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedName = addName.trim();
+    if (!trimmedName) {
+      toast.warning("Nama tamu wajib diisi.");
+      return;
+    }
+
+    setIsAdding(true);
+
+    const payload = {
+      name: trimmedName,
+      phone: addPhone.trim(),
+      email: addEmail.trim(),
+      quota_guests: Number(addQuota) || 2,
+      total_guests: Number(addQuota) || 2,
+      is_present: addDirectCheckIn ? true : false,
+      source: "pre_registered",
+    };
+
+    const targetEndpoints = Array.from(
+      new Set([
+        "http://localhost:8888/api/reservations",
+        "/api/reservations",
+        `${getPublicApiUrl()}/api/reservations`,
+      ]),
+    );
+
+    let createdGuest: ImportedGuest | null = null;
+    let lastError = "";
+
+    for (const url of targetEndpoints) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const raw = await res.text();
+        let json: {
+          data?: ImportedGuest;
+          error?: string;
+          message?: string;
+        } | null = null;
+        try {
+          json = JSON.parse(raw);
+        } catch {
+          json = null;
+        }
+
+        if (res.ok && json?.data?.code) {
+          createdGuest = json.data;
+          break;
+        }
+
+        if (json?.error) {
+          lastError = json.error;
+        }
+      } catch (err: unknown) {
+        lastError = err instanceof Error ? err.message : String(err);
+      }
+    }
+
+    if (!createdGuest) {
+      setIsAdding(false);
+      toast.error(
+        lastError ||
+          "Gagal menambahkan tamu. Pastikan server Go port 8888 aktif di http://localhost:8888.",
+      );
+      return;
+    }
+
+    // Jika opsi check-in langsung diaktifkan, proses check-in kehadiran sekarang juga
+    if (addDirectCheckIn && createdGuest.code) {
+      try {
+        const checkInEndpoints = Array.from(
+          new Set([
+            "http://localhost:8888/api/reservations/check-in",
+            "/api/reservations/check-in",
+            `${getPublicApiUrl()}/api/reservations/check-in`,
+          ]),
+        );
+        for (const ciUrl of checkInEndpoints) {
+          try {
+            const ciRes = await fetch(ciUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                code: createdGuest.code,
+                actual_guest: Number(addQuota) || 1,
+              }),
+            });
+            if (ciRes.ok) {
+              createdGuest.is_present = true;
+              createdGuest.status = "hadir";
+              break;
+            }
+          } catch {
+            // Abaikan error fallback check-in
+          }
+        }
+      } catch {
+        // Abaikan error check-in
+      }
+    }
+
+    setNewlyCreatedGuest(createdGuest);
+    setIsAdding(false);
+    toast.success(
+      `Tamu "${createdGuest.name}" berhasil ditambahkan! Kode: ${createdGuest.code}`,
+    );
+
+    // Refresh database tab data di background
+    fetchDbGuests(1, debouncedSearch, filterSource, filterStatus);
   };
 
   // Parsing File Excel (.xlsx, .xls, .csv)
@@ -658,24 +774,26 @@ Salam hangat,
   const handleExportResult = (dataToExport: ImportedGuest[]) => {
     if (!dataToExport || dataToExport.length === 0) return;
 
-    const exportRows = dataToExport.map((g, idx) => ({
-      No: idx + 1,
-      "Nama Tamu": g.name,
-      "No WhatsApp": g.phone || "-",
-      Email: g.email || "-",
-      "Kode Reservasi": g.code,
-      "Jatah Kuota": g.quota_guests || g.total_guests || 2,
-      "Link Undangan Digital":
-        g.invite_url || `https://weddingofandricica.me?code=${g.code}`,
-      "Link Gambar QR Code": `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(
-        g.invite_url || `https://weddingofandricica.me?code=${g.code}`,
-      )}`,
-      Status: g.is_present
-        ? "Sudah Hadir"
-        : g.status === "konfirmasi_hadir"
-          ? "Konfirmasi Hadir"
-          : "Belum Hadir",
-    }));
+    const exportRows = dataToExport.map((g, idx) => {
+      const inviteUrl = buildInvitationUrl(g.name, g.code);
+      return {
+        No: idx + 1,
+        "Nama Tamu": g.name,
+        "No WhatsApp": g.phone || "-",
+        Email: g.email || "-",
+        "Kode Reservasi": g.code,
+        "Jatah Kuota": g.quota_guests || g.total_guests || 2,
+        "Link Undangan Digital": inviteUrl,
+        "Link Gambar QR Code": `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(
+          inviteUrl,
+        )}`,
+        Status: g.is_present
+          ? "Sudah Hadir"
+          : g.status === "konfirmasi_hadir"
+            ? "Konfirmasi Hadir"
+            : "Belum Hadir",
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
@@ -861,6 +979,20 @@ Salam hangat,
             >
               <LuFileSpreadsheet className="w-4 h-4" />
               <span>Import Excel</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("add");
+                setNewlyCreatedGuest(null);
+              }}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition ${
+                activeTab === "add"
+                  ? "bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20"
+                  : "bg-white/5 text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              <LuUserPlus className="w-4 h-4" />
+              <span>Tambah Tamu</span>
             </button>
             <button
               onClick={() => setActiveTab("database")}
@@ -1122,9 +1254,10 @@ Salam hangat,
                 {/* Mobile Card View (< md) */}
                 <div className="md:hidden space-y-3">
                   {importedResult.map((guest, idx) => {
-                    const inviteUrl =
-                      guest.invite_url ||
-                      `https://weddingofandricica.me?code=${guest.code}`;
+                    const inviteUrl = buildInvitationUrl(
+                      guest.name,
+                      guest.code,
+                    );
                     return (
                       <div
                         key={guest.code || idx}
@@ -1182,6 +1315,16 @@ Salam hangat,
                               )}
                             </button>
 
+                            <a
+                              href={inviteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
+                              title="Buka Undangan"
+                            >
+                              <LuExternalLink className="w-4 h-4" />
+                            </a>
+
                             {guest.phone ? (
                               <a
                                 href={generateWaLink(
@@ -1223,9 +1366,10 @@ Salam hangat,
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {importedResult.map((guest, idx) => {
-                        const inviteUrl =
-                          guest.invite_url ||
-                          `https://weddingofandricica.me?code=${guest.code}`;
+                        const inviteUrl = buildInvitationUrl(
+                          guest.name,
+                          guest.code,
+                        );
                         return (
                           <tr
                             key={guest.code || idx}
@@ -1280,6 +1424,15 @@ Salam hangat,
                                     <LuCopy className="w-4 h-4" />
                                   )}
                                 </button>
+                                <a
+                                  href={inviteUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
+                                  title="Buka Undangan"
+                                >
+                                  <LuExternalLink className="w-4 h-4" />
+                                </a>
                               </div>
                             </td>
                             <td className="py-2.5 px-3 text-right">
@@ -1430,7 +1583,10 @@ Salam hangat,
                 {/* Mobile Card View (< md) */}
                 <div className="md:hidden space-y-3">
                   {filteredDbGuests.map((guest, idx) => {
-                    const inviteUrl = `https://weddingofandricica.me?code=${guest.code}`;
+                    const inviteUrl = buildInvitationUrl(
+                      guest.name,
+                      guest.code,
+                    );
                     const isCheckedIn =
                       guest.is_present ||
                       guest.status?.toLowerCase() === "hadir";
@@ -1550,7 +1706,7 @@ Salam hangat,
                             </button>
 
                             <a
-                              href={`https://weddingofandricica.me?code=${guest.code}`}
+                              href={inviteUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
@@ -1582,7 +1738,10 @@ Salam hangat,
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {filteredDbGuests.map((guest, idx) => {
-                          const inviteUrl = `https://weddingofandricica.me?code=${guest.code}`;
+                          const inviteUrl = buildInvitationUrl(
+                            guest.name,
+                            guest.code,
+                          );
                           const isCheckedIn =
                             guest.is_present ||
                             guest.status?.toLowerCase() === "hadir";
@@ -1702,7 +1861,7 @@ Salam hangat,
                                   </button>
 
                                   <a
-                                    href={`https://weddingofandricica.me?code=${guest.code}`}
+                                    href={inviteUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
@@ -1819,6 +1978,381 @@ Salam hangat,
             )}
           </div>
         )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: TAMBAH TAMU DADAKAN (INPUT LANGSUNG) */}
+        {/* ========================================================================= */}
+        {activeTab === "add" && (
+          <div className="max-w-3xl mx-auto space-y-6">
+            {!newlyCreatedGuest ? (
+              /* Formulir Input Tamu */
+              <div className="bg-linear-to-b from-[#131722] to-[#0e111a] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-32 bg-amber-500/10 blur-3xl pointer-events-none rounded-full" />
+
+                <div className="relative z-10 space-y-6">
+                  {/* Header Title */}
+                  <div className="text-center space-y-2 max-w-lg mx-auto">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold uppercase tracking-wider">
+                      <LuSparkles className="w-3.5 h-3.5" />
+                      <span>Input Tamu Langsung</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-playfair tracking-wide">
+                      Tambah Tamu Tambahan / Dadakan
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                      Masukkan data tamu undangan tambahan secara instan. Sistem
+                      akan otomatis mengenerate kode reservasi 5-digit dan link
+                      undangan personal (Format #2).
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleAddGuest} className="space-y-5 pt-2">
+                    {/* Nama Tamu */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-semibold text-slate-200 flex items-center justify-between">
+                        <span>
+                          Nama Tamu Undangan{" "}
+                          <span className="text-rose-400">*</span>
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-normal">
+                          Wajib diisi
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <LuUser className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          type="text"
+                          required
+                          value={addName}
+                          onChange={(e) => setAddName(e.target.value)}
+                          placeholder="Contoh: Budi Santoso atau Keluarga Hendra Pratama"
+                          className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+                        />
+                      </div>
+                    </div>
+
+                    {/* No WA & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* No WhatsApp */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs sm:text-sm font-semibold text-slate-200 flex items-center justify-between">
+                          <span>No WhatsApp</span>
+                          <span className="text-[11px] text-slate-400 font-normal">
+                            Opsional
+                          </span>
+                        </label>
+                        <div className="relative">
+                          <LuPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="tel"
+                            value={addPhone}
+                            onChange={(e) => setAddPhone(e.target.value)}
+                            placeholder="Contoh: 081234567890"
+                            className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition font-mono"
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Digunakan untuk kirim template pesan undangan via
+                          WhatsApp
+                        </p>
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs sm:text-sm font-semibold text-slate-200 flex items-center justify-between">
+                          <span>Email</span>
+                          <span className="text-[11px] text-slate-400 font-normal">
+                            Opsional
+                          </span>
+                        </label>
+                        <div className="relative">
+                          <LuMail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="email"
+                            value={addEmail}
+                            onChange={(e) => setAddEmail(e.target.value)}
+                            placeholder="Contoh: budi@gmail.com"
+                            className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Alamat email konfirmasi tiket tamu
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Jatah Kuota Pax */}
+                    <div className="space-y-2">
+                      <label className="text-xs sm:text-sm font-semibold text-slate-200 flex items-center justify-between">
+                        <span>Jatah Kuota Kehadiran (Pax)</span>
+                        <span className="text-xs text-amber-300 font-mono font-bold">
+                          {addQuota} Orang
+                        </span>
+                      </label>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {[1, 2, 3, 4, 5].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setAddQuota(num)}
+                            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition border ${
+                              addQuota === num
+                                ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20"
+                                : "bg-black/40 border-white/10 text-slate-300 hover:bg-white/10"
+                            }`}
+                          >
+                            {num} Pax
+                          </button>
+                        ))}
+                        <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-xl px-2 py-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setAddQuota((prev) => Math.max(1, prev - 1))
+                            }
+                            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 flex items-center justify-center text-sm font-bold"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={addQuota}
+                            onChange={(e) =>
+                              setAddQuota(
+                                Math.max(
+                                  1,
+                                  Math.min(20, Number(e.target.value) || 1),
+                                ),
+                              )
+                            }
+                            className="w-10 text-center bg-transparent text-sm font-bold text-amber-300 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setAddQuota((prev) => Math.min(20, prev + 1))
+                            }
+                            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 flex items-center justify-center text-sm font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Checkbox Langsung Check-in */}
+                    <div className="p-3.5 bg-black/40 border border-white/10 rounded-xl flex items-start gap-3 cursor-pointer hover:border-amber-500/30 transition">
+                      <input
+                        type="checkbox"
+                        id="direct-checkin-check"
+                        checked={addDirectCheckIn}
+                        onChange={(e) => setAddDirectCheckIn(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded text-amber-500 focus:ring-amber-400 border-white/20 bg-black/60 cursor-pointer"
+                      />
+                      <label
+                        htmlFor="direct-checkin-check"
+                        className="cursor-pointer text-xs select-none"
+                      >
+                        <span className="font-semibold text-white block">
+                          Tamu Langsung Hadir di Lokasi (Langsung Check-in
+                          Sekarang)
+                        </span>
+                        <span className="text-slate-400 block mt-0.5">
+                          Centang opsi ini jika tamu sudah tiba di lokasi acara
+                          dan ingin langsung dicatat kehadirannya tanpa perlu
+                          scan QR lagi.
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Tombol Simpan */}
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        disabled={isAdding}
+                        className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isAdding ? (
+                          <>
+                            <LuRefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+                            <span>Menyimpan Data Tamu...</span>
+                          </>
+                        ) : (
+                          <>
+                            <LuUserPlus className="w-4 h-4" />
+                            <span>Simpan &amp; Buat Undangan Tamu</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              /* Success Result Card */
+              <div className="bg-linear-to-b from-[#131722] to-[#0e111a] border-2 border-emerald-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6">
+                <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-32 bg-emerald-500/10 blur-3xl pointer-events-none rounded-full" />
+
+                <div className="relative z-10 text-center space-y-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+                    <LuCircleCheck className="w-4 h-4" />
+                    <span>Tamu Berhasil Ditambahkan</span>
+                  </div>
+
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white font-playfair tracking-wide">
+                    {newlyCreatedGuest.name}
+                  </h2>
+
+                  <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                    <span>
+                      Jatah:{" "}
+                      <strong className="text-white">
+                        {newlyCreatedGuest.quota_guests || 2} Pax
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    {newlyCreatedGuest.is_present ? (
+                      <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                        <LuCircleCheck className="w-3.5 h-3.5" /> Sudah Hadir
+                        (Checked-in)
+                      </span>
+                    ) : (
+                      <span className="text-amber-300 font-medium">
+                        Terdaftar (Belum Hadir)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Kode Reservasi Box */}
+                <div className="bg-black/50 border border-white/10 rounded-2xl p-4 text-center max-w-sm mx-auto space-y-1">
+                  <span className="text-[10px] text-amber-300 font-mono tracking-widest uppercase block">
+                    KODE RESERVASI TAMU
+                  </span>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-3xl font-mono font-bold text-amber-300 tracking-widest select-all">
+                      {newlyCreatedGuest.code}
+                    </span>
+                    <button
+                      onClick={() =>
+                        handleCopy(
+                          newlyCreatedGuest.code,
+                          newlyCreatedGuest.code,
+                        )
+                      }
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
+                      title="Salin Kode"
+                    >
+                      {copiedCode === newlyCreatedGuest.code ? (
+                        <LuCheck className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <LuCopy className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {(() => {
+                  const inviteUrl = buildInvitationUrl(
+                    newlyCreatedGuest.name,
+                    newlyCreatedGuest.code,
+                  );
+                  return (
+                    <div className="space-y-4 max-w-md mx-auto">
+                      {/* Link Undangan Format #2 */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-300 block">
+                          Link Undangan Personal (Format #2)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={inviteUrl}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono truncate select-all"
+                          />
+                          <button
+                            onClick={() =>
+                              handleCopy(
+                                inviteUrl,
+                                "url-" + newlyCreatedGuest.code,
+                              )
+                            }
+                            className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition shrink-0 flex items-center gap-1.5 cursor-pointer"
+                          >
+                            {copiedCode === "url-" + newlyCreatedGuest.code ? (
+                              <LuCheck className="w-4 h-4 text-emerald-400" />
+                            ) : (
+                              <LuCopy className="w-4 h-4" />
+                            )}
+                            <span>
+                              {copiedCode === "url-" + newlyCreatedGuest.code
+                                ? "Tersalin"
+                                : "Salin Link"}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                        <a
+                          href={inviteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 text-center"
+                        >
+                          <LuExternalLink className="w-4 h-4 text-amber-400" />
+                          <span>Buka Undangan</span>
+                        </a>
+
+                        {newlyCreatedGuest.phone ? (
+                          <a
+                            href={generateWaLink(
+                              newlyCreatedGuest.phone,
+                              newlyCreatedGuest.name,
+                              newlyCreatedGuest.code,
+                              inviteUrl,
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 text-center"
+                          >
+                            <FaWhatsapp className="w-4 h-4" />
+                            <span>Kirim WhatsApp</span>
+                          </a>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQrGuest(newlyCreatedGuest)}
+                          className="py-2.5 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <LuQrCode className="w-4 h-4" />
+                          <span>Lihat QR</span>
+                        </button>
+                      </div>
+
+                      {/* Button Tambah Tamu Lainnya */}
+                      <div className="pt-4 border-t border-white/10 text-center">
+                        <button
+                          type="button"
+                          onClick={handleResetAddForm}
+                          className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 inline-flex items-center gap-2 cursor-pointer"
+                        >
+                          <LuPlus className="w-4 h-4" />
+                          <span>Tambah Tamu Lainnya</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Modal Preview & Download QR Code Tiket */}
@@ -1854,68 +2388,108 @@ Salam hangat,
               Pax
             </p>
 
-            {/* QR Code Container */}
-            <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-2xl max-w-[220px] mx-auto my-3">
-              <Image
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(
-                  selectedQrGuest.invite_url ||
-                    `https://weddingofandricica.me?code=${selectedQrGuest.code}`,
-                )}`}
-                alt={`QR Code ${selectedQrGuest.name}`}
-                width={250}
-                height={250}
-                unoptimized
-                className="w-48 h-48 object-contain mx-auto"
-              />
-            </div>
+            {(() => {
+              const inviteUrl = buildInvitationUrl(
+                selectedQrGuest.name,
+                selectedQrGuest.code,
+              );
 
-            <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
-              Tunjukkan QR Code ini kepada penerima tamu saat tiba di lokasi
-              resepsi pernikahan
-            </p>
+              return (
+                <>
+                  {/* QR Code Container */}
+                  <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-2xl max-w-[220px] mx-auto my-3">
+                    <Image
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(
+                        inviteUrl,
+                      )}`}
+                      alt={`QR Code ${selectedQrGuest.name}`}
+                      width={250}
+                      height={250}
+                      unoptimized
+                      className="w-48 h-48 object-contain mx-auto"
+                    />
+                  </div>
 
-            <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 mb-4">
-              <span className="text-[10px] text-amber-300/80 block uppercase font-mono tracking-wider">
-                KODE RESERVASI
-              </span>
-              <span className="text-2xl font-mono font-bold text-amber-300 tracking-widest">
-                {selectedQrGuest.code}
-              </span>
-            </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                    Tunjukkan QR Code ini kepada penerima tamu saat tiba di
+                    lokasi resepsi pernikahan
+                  </p>
 
-            <div className="flex gap-2">
-              <a
-                href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=${encodeURIComponent(
-                  selectedQrGuest.invite_url ||
-                    `https://weddingofandricica.me?code=${selectedQrGuest.code}`,
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                download={`QR_${selectedQrGuest.name}_${selectedQrGuest.code}.png`}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 text-center"
-              >
-                Unduh Gambar QR
-              </a>
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 mb-4">
+                    <span className="text-[10px] text-amber-300/80 block uppercase font-mono tracking-wider">
+                      KODE RESERVASI
+                    </span>
+                    <span className="text-2xl font-mono font-bold text-amber-300 tracking-widest">
+                      {selectedQrGuest.code}
+                    </span>
+                  </div>
 
-              {selectedQrGuest.phone && (
-                <a
-                  href={generateWaLink(
-                    selectedQrGuest.phone,
-                    selectedQrGuest.name,
-                    selectedQrGuest.code,
-                    selectedQrGuest.invite_url ||
-                      `https://weddingofandricica.me?code=${selectedQrGuest.code}`,
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20"
-                  title="Kirim ke WhatsApp Tamu"
-                >
-                  <FaWhatsapp className="w-4 h-4" />
-                  <span>WA</span>
-                </a>
-              )}
-            </div>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <a
+                        href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=15&data=${encodeURIComponent(
+                          inviteUrl,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={`QR_${selectedQrGuest.name}_${selectedQrGuest.code}.png`}
+                        className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 text-center flex items-center justify-center gap-1.5"
+                      >
+                        <LuDownload className="w-3.5 h-3.5" />
+                        <span>Unduh Gambar QR</span>
+                      </a>
+
+                      <button
+                        onClick={() =>
+                          handleCopy(inviteUrl, selectedQrGuest.code)
+                        }
+                        className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5"
+                        title="Salin Link Undangan"
+                      >
+                        {copiedCode === selectedQrGuest.code ? (
+                          <LuCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <LuCopy className="w-3.5 h-3.5 text-slate-300" />
+                        )}
+                        <span>
+                          {copiedCode === selectedQrGuest.code
+                            ? "Tersalin"
+                            : "Salin Link"}
+                        </span>
+                      </button>
+
+                      {selectedQrGuest.phone && (
+                        <a
+                          href={generateWaLink(
+                            selectedQrGuest.phone,
+                            selectedQrGuest.name,
+                            selectedQrGuest.code,
+                            inviteUrl,
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20"
+                          title="Kirim ke WhatsApp Tamu"
+                        >
+                          <FaWhatsapp className="w-4 h-4" />
+                          <span>WA</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <a
+                      href={inviteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5"
+                    >
+                      <LuExternalLink className="w-3.5 h-3.5" />
+                      <span>Buka Halaman Undangan Tamu</span>
+                    </a>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

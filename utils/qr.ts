@@ -4,8 +4,9 @@
 
 /**
  * Extracts 5-digit reservation code from diverse QR code payload formats:
+ * - Personalized invitation URL (Format #2): https://weddingofandricica.me/Yuda?code=42507
+ * - Encoded invitation URL: https://weddingofandricica.me/Budi%20Santoso?code=42507
  * - Full invitation URL: https://weddingofandricica.me?code=66882
- * - Preview email URL: http://localhost:8888/api/reservations/preview-email?name=Budi&code=66882
  * - Check-in URL: https://weddingofandricica.me/reservations?code=66882
  * - Query string: ?code=66882
  * - Raw numeric code: 66882
@@ -17,7 +18,8 @@ export function extractReservationCode(scannedText?: string | null): string | nu
   // 1. Check if it's a URL or contains query parameters
   try {
     if (text.startsWith("http://") || text.startsWith("https://") || text.includes("?")) {
-      const url = new URL(text.startsWith("http") ? text : `http://localhost/${text}`);
+      const sanitized = text.includes(" ") ? text.replace(/ /g, "%20") : text;
+      const url = new URL(sanitized.startsWith("http") ? sanitized : `http://localhost/${sanitized}`);
       const codeParam = url.searchParams.get("code");
       if (codeParam && codeParam.trim()) {
         return codeParam.trim();
