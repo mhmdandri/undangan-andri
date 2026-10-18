@@ -66,18 +66,6 @@ export function buildInvitationPath(
   return "/guest";
 }
 
-/**
- * Builds the QR Code image URL via qrserver.com
- */
-export function buildQrCodeImageUrl(
-  payloadUrl: string,
-  size: number = 250,
-  margin: number = 8
-): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=${margin}&data=${encodeURIComponent(
-    payloadUrl
-  )}`;
-}
 
 /**
  * Formats a phone number for WhatsApp international standard (e.g. 0812... -> 62812...).

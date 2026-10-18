@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar"; // asumsi Sidebar sudah kamu tambahkan
 import { RxHamburgerMenu } from "react-icons/rx";
 import { motion, AnimatePresence } from "motion/react";
@@ -12,15 +12,32 @@ export default function SidebarProvider() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true); // state untuk mengontrol visibilitas sidebar
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const isMainInvitation =
+    !pathname?.startsWith("/admin") && !pathname?.startsWith("/list-guest");
+  const [isLoading, setIsLoading] = useState(isMainInvitation);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsLoading(isMainInvitation);
+  }
+
   useEffect(() => {
     const handleModalToggle = (e: Event) => {
       const custom = e as CustomEvent<{ open?: boolean }>;
       setIsModalOpen(Boolean(custom.detail?.open));
     };
 
+    const handleLoadingChange = (e: Event) => {
+      const custom = e as CustomEvent<{ loading?: boolean }>;
+      setIsLoading(Boolean(custom.detail?.loading));
+    };
+
     window.addEventListener("modal-open-change", handleModalToggle);
+    window.addEventListener("page-loading-change", handleLoadingChange);
     return () => {
       window.removeEventListener("modal-open-change", handleModalToggle);
+      window.removeEventListener("page-loading-change", handleLoadingChange);
     };
   }, []);
 
@@ -46,7 +63,7 @@ export default function SidebarProvider() {
 
       {/* Button trigger */}
       <AnimatePresence>
-        {isSidebarVisible && !isModalOpen && (
+        {isSidebarVisible && !isModalOpen && !isLoading && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}

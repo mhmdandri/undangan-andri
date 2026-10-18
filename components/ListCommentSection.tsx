@@ -30,7 +30,7 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <LazyBackgroundVideo src="/media/5.mp4" />
+      <LazyBackgroundVideo src="/media/background/comments.mp4" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />
@@ -45,7 +45,10 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
           </h2>
 
           {/* Ornamen Garis Pembatas */}
-          <div className="flex items-center justify-center sm:justify-start gap-2 text-amber-200/60 pt-1" aria-hidden="true">
+          <div
+            className="flex items-center justify-center sm:justify-start gap-2 text-amber-200/60 pt-1"
+            aria-hidden="true"
+          >
             <div className="h-px w-10 sm:w-14 bg-linear-to-r from-transparent to-amber-200/60" />
             <span className="text-[10px] text-amber-300">✦</span>
             <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
@@ -66,8 +69,12 @@ const ListCommentSection: React.FC<ListCommentSectionProps> = ({
       >
         {wishes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6">
-            <p className="text-sm font-medium text-slate-300">Belum ada ucapan dan doa.</p>
-            <p className="mt-1 text-xs text-slate-400">Jadilah yang pertama menuliskan ucapan di form sebelumnya!</p>
+            <p className="text-sm font-medium text-slate-300">
+              Belum ada ucapan dan doa.
+            </p>
+            <p className="mt-1 text-xs text-slate-400">
+              Jadilah yang pertama menuliskan ucapan di form sebelumnya!
+            </p>
           </div>
         ) : (
           wishes.map((wish, idx) => {

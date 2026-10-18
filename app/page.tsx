@@ -33,11 +33,11 @@ export async function generateMetadata({
   const description = `Kepada Yth. ${displayName}, kami mengundang Anda untuk merayakan hari pernikahan kami pada Sabtu, 21 November 2026.`;
 
   return {
-    title: `${title} - Kepada ${displayName}`,
+    title,
     description,
     openGraph: {
       type: "website",
-      title: `${title} - Kepada ${displayName}`,
+      title,
       description,
       siteName: "The Wedding Of Andri & Cica",
       locale: "id_ID",
@@ -53,7 +53,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary",
-      title: `${title} - Kepada ${displayName}`,
+      title,
       description,
       images: ["/og-image.jpg"],
     },
@@ -73,7 +73,7 @@ export default async function Home({
     const reservation = await getReservationByCode(code.trim());
     if (reservation?.name) {
       redirect(
-        `/${encodeURIComponent(reservation.name)}?code=${encodeURIComponent(code.trim())}`
+        `/${encodeURIComponent(reservation.name)}?code=${encodeURIComponent(code.trim())}`,
       );
     }
     redirect(`/guest?code=${encodeURIComponent(code.trim())}`);

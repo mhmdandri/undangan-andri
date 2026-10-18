@@ -21,7 +21,7 @@ const LastSection: React.FC<LastSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background */}
-      <LazyBackgroundVideo src="/media/road.mp4" />
+      <LazyBackgroundVideo src="/media/background/last.mp4" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />

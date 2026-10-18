@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode, Html5QrcodeCameraScanConfig } from "html5-qrcode";
 import {
   BsArrowRepeat,

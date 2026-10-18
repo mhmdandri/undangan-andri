@@ -1,6 +1,5 @@
 import HomePage from "@/components/Home";
 import BackgroundMusic from "@/components/Music";
-import React from "react";
 import type { Metadata } from "next";
 
 import { redirect } from "next/navigation";

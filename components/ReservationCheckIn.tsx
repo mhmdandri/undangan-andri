@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -485,6 +485,14 @@ export default function ReservationCheckIn() {
           >
             {soundEnabled ? <BsVolumeUp /> : <BsVolumeMute className="text-white/40" />}
           </button>
+
+          <Link
+            href="/admin/check-in"
+            className="flex items-center gap-1 text-[10px] text-emerald-300 hover:text-white font-medium tracking-wider uppercase bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 px-2.5 py-1 rounded-full backdrop-blur-sm transition"
+            title="Check-in Manual dengan Cari Nama Tamu"
+          >
+            <span>Cari Nama Tamu</span>
+          </Link>
 
           <Link
             href="/admin"
@@ -1029,9 +1037,17 @@ export default function ReservationCheckIn() {
 
                 {/* Helpful Instruction Tip if in manual mode & no guest found yet */}
                 {activeTab === "manual" && !guestData && (
-                  <div className="pt-2 text-center text-[11px] text-white/50">
+                  <div className="pt-2 text-center text-[11px] text-white/50 space-y-1.5">
                     <p>
                       Masukkan 5 digit kode reservasi tamu yang tertera pada email konfirmasi atau barcode undangan.
+                    </p>
+                    <p className="pt-1">
+                      <Link
+                        href="/admin/check-in"
+                        className="inline-flex items-center gap-1 text-amber-300 hover:text-amber-200 underline font-medium"
+                      >
+                        Lupa kode atau tidak bawa barcode? Cari Nama Tamu &rarr;
+                      </Link>
                     </p>
                   </div>
                 )}

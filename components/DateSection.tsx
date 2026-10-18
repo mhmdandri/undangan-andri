@@ -54,7 +54,7 @@ const DateSection: React.FC<DateSectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* Background Video */}
-      <LazyBackgroundVideo src="/media/3.mp4" />
+      <LazyBackgroundVideo src="/media/background/date.mp4" />
 
       {/* Gradient halus HANYA di bagian bawah agar muka pengantin di bagian atas/tengah 100% terlihat jelas */}
       <div className="absolute inset-x-0 bottom-0 h-[460px] bg-linear-to-t from-black/95 via-black/70 to-transparent pointer-events-none" />
@@ -151,7 +151,7 @@ const DateSection: React.FC<DateSectionProps> = ({
           className="w-full pt-0.5"
         >
           <a
-            href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=The+Wedding+of+Andri+%26+Cica&dates=20261121T020000Z/20261121T090000Z&details=Pernikahan+Andri+%26+Cica&location=Jl.+Turi+Jaya+Gang+IV+No+1+Sagara+Makmur+Kec.+Tarumajaya+Kab.+Bekasi"
+            href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=The+Wedding+of+Andri+%26+Cica&dates=20261121T020000Z/20261121T110000Z&details=Pernikahan+Andri+%26+Cica&location=Gedung+Serbaguna+Segaramakmur,+Jl.+Marunda+Makmur+No.17,+Sagara+Makmur,+Kec.+Tarumajaya,+Kab.+Bekasi"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-6 rounded-full bg-linear-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs tracking-wider uppercase shadow-xl shadow-amber-500/25 transition active:scale-95"

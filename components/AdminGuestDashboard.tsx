@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   useState,
   useEffect,
   useRef,
@@ -29,6 +29,7 @@ import {
   LuChevronsLeft,
   LuChevronsRight,
   LuUserPlus,
+  LuUserCheck,
   LuUser,
   LuMail,
   LuPhone,
@@ -944,6 +945,14 @@ export default function AdminGuestDashboard() {
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
+            <Link
+              href="/admin/check-in"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition shadow-sm"
+              title="Ke Halaman Check-in Tamu (Cari Nama & Klik Hadir)"
+            >
+              <LuUserCheck className="w-3.5 h-3.5" />
+              <span>Check-in Tamu</span>
+            </Link>
             <Link
               href="/list-guest"
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition"

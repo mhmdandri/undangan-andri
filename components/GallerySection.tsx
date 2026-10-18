@@ -14,18 +14,36 @@ type GallerySectionProps = {
 };
 
 const galleryImages = [
-  "/media/gallery1.JPG",
-  "/media/gallery2.JPG",
-  "/media/gallery3.JPG",
-  "/media/gallery4.JPG",
-  "/media/gallery5.JPG",
-  "/media/gallery6.JPG",
-  "/media/gallery7.JPG",
-  "/media/gallery8.JPG",
-  "/media/gallery9.JPG",
-  "/media/gallery10.jpg",
-  "/media/gallery11.jpg",
-  "/media/gallery12.jpg",
+  "/media/galery/1.jpg",
+  "/media/galery/2.jpg",
+  "/media/galery/3.jpg",
+  "/media/galery/4.jpg",
+  "/media/galery/5.jpg",
+  "/media/galery/6.jpg",
+  "/media/galery/7.jpg",
+  "/media/galery/8.jpg",
+  "/media/galery/9.jpg",
+  "/media/galery/10.jpg",
+  "/media/galery/11.jpg",
+  "/media/galery/12.jpg",
+  "/media/galery/13.jpg",
+  "/media/galery/14.jpg",
+  "/media/galery/15.jpg",
+  "/media/galery/16.jpg",
+  "/media/galery/17.jpg",
+  "/media/galery/18.jpg",
+  "/media/galery/19.jpg",
+  "/media/galery/20.jpg",
+  "/media/galery/21.jpg",
+  "/media/galery/22.jpg",
+  "/media/galery/23.jpg",
+  "/media/galery/24.jpg",
+  "/media/galery/25.jpg",
+  "/media/galery/26.jpg",
+  "/media/galery/27.jpg",
+  "/media/galery/28.jpg",
+  "/media/galery/29.jpg",
+  "/media/galery/30.jpg",
 ];
 
 const GallerySection: React.FC<GallerySectionProps> = ({
@@ -104,7 +122,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({
       className="relative h-dvh w-full text-white overflow-hidden"
     >
       {/* BACKGROUND VIDEO */}
-      <LazyBackgroundVideo src="/media/road.mp4" />
+      <LazyBackgroundVideo src="/media/background/galery.mp4" />
 
       {/* OVERLAY */}
       <div className="absolute inset-0 bg-black/60" />
@@ -135,6 +153,10 @@ const GallerySection: React.FC<GallerySectionProps> = ({
             <span className="text-[10px] text-amber-300">✦</span>
             <div className="h-px w-10 sm:w-14 bg-linear-to-l from-transparent to-amber-200/60" />
           </div>
+
+          <p className="text-[11px] text-center text-slate-300/90 pt-1 tracking-wider uppercase font-medium">
+            Ketuk foto untuk melihat layar penuh
+          </p>
         </motion.div>
 
         {/* INSTAGRAM-STYLE GRID */}
@@ -171,10 +193,6 @@ const GallerySection: React.FC<GallerySectionProps> = ({
               </motion.button>
             ))}
           </div>
-
-          <p className="text-[11px] text-center text-slate-400 mt-4 tracking-wider uppercase font-medium">
-            Ketuk foto untuk melihat layar penuh
-          </p>
         </motion.div>
       </div>
 

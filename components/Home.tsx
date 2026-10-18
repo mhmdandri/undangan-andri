@@ -88,7 +88,7 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
     if (typeof window !== "undefined") {
       const v = document.createElement("video");
       v.preload = "auto";
-      v.src = "/media/4.mp4";
+      v.src = "/media/background/event.mp4";
     }
     scrollTo(journeyRef);
   };
@@ -96,7 +96,7 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
     if (typeof window !== "undefined") {
       const v = document.createElement("video");
       v.preload = "auto";
-      v.src = "/media/3.mp4";
+      v.src = "/media/background/date.mp4";
     }
     scrollTo(eventRef);
   };
@@ -112,6 +112,17 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
       window.scrollTo(0, 0);
     }
   }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("page-loading-change", { detail: { loading } })
+    );
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("page-loading-change", { detail: { loading: false } })
+      );
+    };
+  }, [loading]);
 
   useEffect(() => {
     let mounted = true;

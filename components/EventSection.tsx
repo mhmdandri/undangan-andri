@@ -24,7 +24,7 @@ const EventSection: React.FC<EventSectionProps> = ({
     >
       {/* Background video */}
       <LazyBackgroundVideo
-        src="/media/4.mp4"
+        src="/media/background/event.mp4"
         className="absolute inset-0 h-full w-full object-cover object-[1%_center]"
       />
 
@@ -111,7 +111,7 @@ const EventSection: React.FC<EventSectionProps> = ({
             </span>
             <div className="flex items-center justify-center gap-1.5 text-xs text-amber-200 font-mono font-medium pt-0.5">
               <LuClock className="w-3.5 h-3.5 text-amber-400" />
-              <span>11.00 - 17.00 WIB</span>
+              <span>12.00 - 18.00 WIB</span>
             </div>
           </div>
         </motion.div>
@@ -130,22 +130,22 @@ const EventSection: React.FC<EventSectionProps> = ({
         >
           <div>
             <h3 className="font-playfair text-sm sm:text-base font-bold text-white">
-              Turi Jaya Gang IV
+              Gedung Serbaguna Segaramakmur
             </h3>
             <p className="text-[11px] sm:text-xs leading-relaxed text-slate-300">
-              Jl. Turi Jaya Gang IV No 1, Sagara Makmur, Kec. Tarumajaya, Kab.
-              Bekasi
+              Jl. Marunda Makmur No.17, Sagara Makmur, Kec. Tarumajaya, Kab.
+              Bekasi, Jawa Barat 17211
             </p>
           </div>
 
           <a
-            href="https://maps.google.com/?q=Jl.+Turi+Jaya+Gang+IV+No+1+Sagara+Makmur+Kec.+Tarumajaya+Kab.+Bekasi"
+            href="https://maps.app.goo.gl/yzVckW4TNZ1M9CjQA"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 w-full py-2 px-4 rounded-lg bg-linear-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs tracking-wider uppercase shadow-md shadow-amber-500/20 transition active:scale-95"
           >
             <LuMapPin className="w-3.5 h-3.5" />
-            <span>Petunjuk Lokasi (Google Maps)</span>
+            <span>Petunjuk Lokasi</span>
           </a>
         </motion.div>
       </motion.div>

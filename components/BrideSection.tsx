@@ -88,7 +88,7 @@ const BrideSection: React.FC<BrideSectionProps> = ({
                 },
               }}
             >
-              Cica Purwanti, S.Pd., Gr.
+              Cica Purwanti, S.Pd, Gr.
             </motion.h1>
 
             {/* Ornamen Garis Pembatas */}
