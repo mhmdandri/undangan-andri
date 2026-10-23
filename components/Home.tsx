@@ -412,7 +412,6 @@ const HomePage = ({ guestName, data, code }: HomePageProps) => {
       />
       <LastSection
         verseRef={lastRef}
-        onNext={handleOpen}
         onPrev={handleGaleryScrollDown}
       />
     </>

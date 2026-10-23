@@ -100,7 +100,7 @@ const EventSection: React.FC<EventSectionProps> = ({
             </span>
             <div className="flex items-center justify-center gap-1.5 text-xs text-amber-200 font-mono font-medium pt-0.5">
               <LuClock className="w-3.5 h-3.5 text-amber-400" />
-              <span>09.00 WIB</span>
+              <span>09.00</span>
             </div>
           </div>
 
@@ -111,7 +111,7 @@ const EventSection: React.FC<EventSectionProps> = ({
             </span>
             <div className="flex items-center justify-center gap-1.5 text-xs text-amber-200 font-mono font-medium pt-0.5">
               <LuClock className="w-3.5 h-3.5 text-amber-400" />
-              <span>12.00 - 18.00 WIB</span>
+              <span>12.00 - 18.00</span>
             </div>
           </div>
         </motion.div>

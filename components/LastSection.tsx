@@ -6,13 +6,12 @@ import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 type LastSectionProps = {
   verseRef: React.RefObject<HTMLDivElement | null>;
-  onNext: () => void;
+  onNext?: () => void;
   onPrev: () => void;
 };
 
 const LastSection: React.FC<LastSectionProps> = ({
   verseRef,
-  onNext,
   onPrev,
 }) => {
   return (
@@ -133,7 +132,7 @@ const LastSection: React.FC<LastSectionProps> = ({
         transition={{ duration: 0.55, delay: 0.15, ease: [0.25, 0.8, 0.25, 1] }}
         className="absolute z-10 inset-x-0 bottom-4 w-full px-6"
       >
-        <FooterNav page="12/12" onPrev={onPrev} onNext={onNext} />
+        <FooterNav page="12/12" onPrev={onPrev} />
       </motion.div>
     </section>
   );

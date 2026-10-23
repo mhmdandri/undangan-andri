@@ -6,8 +6,8 @@ import { useState } from "react";
 
 type FooterNavProps = {
   page: string;
-  onPrev: () => void;
-  onNext: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
 };
 
 export default function FooterNav({ page, onPrev, onNext }: FooterNavProps) {
@@ -31,63 +31,73 @@ export default function FooterNav({ page, onPrev, onNext }: FooterNavProps) {
     >
       <div className="flex w-full max-w-xs items-center justify-between">
         {/* Prev */}
-        <motion.button
-          onClick={onPrev}
-          className="cursor-pointer text-3xl hover:text-white/60"
-          whileHover={!isTouchDevice ? { scale: 1.12, x: -3 } : undefined}
-          whileTap={{ scale: 0.92 }}
-          onPointerDown={() => setPressed(true)}
-          onPointerUp={() => setPressed(false)}
-          onPointerCancel={() => setPressed(false)}
-          animate={
-            // auto-bounce ONLY on touch devices, only if user doesn't prefer reduced motion,
-            // and stop when pressed
-            isTouchDevice && !prefersReducedMotion && !pressed
-              ? { y: [0, -4, 0] }
-              : { y: 0 }
-          }
-          transition={
-            isTouchDevice && !prefersReducedMotion
-              ? {
-                  duration: 1.4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  repeatDelay: 1.2,
-                }
-              : { duration: 0.2 }
-          }
-        >
-          <BsArrowLeft />
-        </motion.button>
+        {onPrev ? (
+          <motion.button
+            onClick={onPrev}
+            aria-label="Halaman sebelumnya"
+            className="cursor-pointer text-3xl hover:text-white/60"
+            whileHover={!isTouchDevice ? { scale: 1.12, x: -3 } : undefined}
+            whileTap={{ scale: 0.92 }}
+            onPointerDown={() => setPressed(true)}
+            onPointerUp={() => setPressed(false)}
+            onPointerCancel={() => setPressed(false)}
+            animate={
+              // auto-bounce ONLY on touch devices, only if user doesn't prefer reduced motion,
+              // and stop when pressed
+              isTouchDevice && !prefersReducedMotion && !pressed
+                ? { y: [0, -4, 0] }
+                : { y: 0 }
+            }
+            transition={
+              isTouchDevice && !prefersReducedMotion
+                ? {
+                    duration: 1.4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    repeatDelay: 1.2,
+                  }
+                : { duration: 0.2 }
+            }
+          >
+            <BsArrowLeft />
+          </motion.button>
+        ) : (
+          <div className="w-[30px]" aria-hidden="true" />
+        )}
 
         {/* Next */}
-        <motion.button
-          onClick={onNext}
-          className="cursor-pointer text-3xl hover:text-white/60"
-          whileHover={!isTouchDevice ? { scale: 1.12, x: 3 } : undefined}
-          whileTap={{ scale: 0.92 }}
-          onPointerDown={() => setPressed(true)}
-          onPointerUp={() => setPressed(false)}
-          onPointerCancel={() => setPressed(false)}
-          animate={
-            isTouchDevice && !prefersReducedMotion && !pressed
-              ? { y: [0, -4, 0] }
-              : { y: 0 }
-          }
-          transition={
-            isTouchDevice && !prefersReducedMotion
-              ? {
-                  duration: 1.4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  repeatDelay: 1.2,
-                  delay: 0.2,
-                }
-              : { duration: 0.2 }
-          }
-        >
-          <BsArrowRight />
-        </motion.button>
+        {onNext ? (
+          <motion.button
+            onClick={onNext}
+            aria-label="Halaman selanjutnya"
+            className="cursor-pointer text-3xl hover:text-white/60"
+            whileHover={!isTouchDevice ? { scale: 1.12, x: 3 } : undefined}
+            whileTap={{ scale: 0.92 }}
+            onPointerDown={() => setPressed(true)}
+            onPointerUp={() => setPressed(false)}
+            onPointerCancel={() => setPressed(false)}
+            animate={
+              isTouchDevice && !prefersReducedMotion && !pressed
+                ? { y: [0, -4, 0] }
+                : { y: 0 }
+            }
+            transition={
+              isTouchDevice && !prefersReducedMotion
+                ? {
+                    duration: 1.4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    repeatDelay: 1.2,
+                    delay: 0.2,
+                  }
+                : { duration: 0.2 }
+            }
+          >
+            <BsArrowRight />
+          </motion.button>
+        ) : (
+          <div className="w-[30px]" aria-hidden="true" />
+        )}
       </div>
 
       <motion.p
