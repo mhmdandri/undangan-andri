@@ -13,28 +13,28 @@ type JourneySectionProps = {
 
 const timelineData = [
   {
-    period: "November 2023",
-    title: "Awal Kisah",
+    period: "September 2016",
+    title: "Awal Pertemuan",
     description:
-      "Tanpa diduga, langkah kami mulai berpadu dalam irama yang sama. Komunikasi menjadi lebih hangat, kebersamaan terasa lebih dekat. Dari sekadar teman, perlahan tumbuh rasa, dan kami pun memulai sebuah hubungan.",
+      "Atas izin Allah SWT, kami dipertemukan melalui organisasi dan lingkungan pertemanan. Berawal dari perkenalan sederhana, tumbuh rasa nyaman yang membawa kami semakin dekat. Dari sinilah kisah kami bermula.",
   },
   {
-    period: "November 2024",
-    title: "Niat Suci",
+    period: "Januari 2025",
+    title: "Niat Baik Terucap",
     description:
-      "Satu tahun berlalu dengan penuh cerita dan komitmen. Pada tanggal 30 November 2024, ia menyatakan niat suci—melamarku untuk menjadi pendamping hidupnya.",
+      "Setelah melewati berbagai cerita dan proses untuk saling mengenal serta memahami, tumbuh keyakinan untuk melangkah ke jenjang yang lebih serius. Sebuah komitmen tulus diutarakan, ajakan untuk melangkah bersama mengarungi sisa hidup sebagai pendamping selamanya.",
   },
   {
-    period: "Februari 2025",
-    title: "Pertemuan Keluarga",
+    period: "Mei 2025",
+    title: "Restu Dua Keluarga",
     description:
-      "Langkah kami semakin mantap. Pertemuan dua keluarga menjadi saksi niat baik dan restu yang kami harapkan. Lamaran pun resmi disampaikan, mempertemukan dua hati dalam ikatan keluarga.",
+      "Dengan niat baik dan doa yang menyertai, kedua keluarga dipertemukan untuk menjalin silaturahmi dan membicarakan langkah kami ke depan. Pertemuan ini menjadi saksi ketulusan dan menjadi bentuk kesungguhan kami dalam menyempurnakan ikhtiar menuju ikatan yang halal dengan harapan mendapat restu dan keberkahan dari Allah SWT.",
   },
   {
-    period: "September 2025",
-    title: "Menuju Ikatan Suci",
+    period: "November 2026",
+    title: "Menuju Janji Suci",
     description:
-      "Kini, kami bersiap untuk menapaki babak baru sebagai suami istri. Perjalanan ini telah menjadi anugerah yang penuh makna.",
+      "Dengan memohon ridho Allah SWT serta restu kedua keluarga, kami bersiap mengikrarkan janji suci pernikahan. Semoga Allah SWT senantiasa membimbing langkah kami untuk membangun rumah tangga yang sakinah, mawaddah, wa rahmah.",
   },
 ];
 
