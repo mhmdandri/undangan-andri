@@ -552,7 +552,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({
                 variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
               >
                 {attendance === "hadir"
-                  ? "Masukkan jumlah tamu yang hadir (maksimal 3 orang)."
+                  ? "Masukkan jumlah tamu yang hadir."
                   : "Dinonaktifkan karena Anda memilih tidak hadir."}
               </motion.p>
             </motion.div>
