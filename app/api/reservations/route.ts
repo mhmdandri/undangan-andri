@@ -13,11 +13,16 @@ export async function GET(request: NextRequest) {
   const querySuffix = queryString ? `?${queryString}` : "";
 
   const targetUrls = Array.from(
-    new Set([
-      `${getServerApiUrl()}/api/reservations${querySuffix}`,
-      `${getPublicApiUrl()}/api/reservations${querySuffix}`,
-      `http://localhost:8888/api/reservations${querySuffix}`,
-    ]),
+    new Set(
+      [
+        getServerApiUrl()
+          ? `${getServerApiUrl()}/api/reservations${querySuffix}`
+          : null,
+        getPublicApiUrl()
+          ? `${getPublicApiUrl()}/api/reservations${querySuffix}`
+          : null,
+      ].filter(Boolean) as string[]
+    )
   );
 
   for (const url of targetUrls) {
@@ -76,11 +81,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null);
 
     const targetUrls = Array.from(
-      new Set([
-        `${getServerApiUrl()}/api/reservations`,
-        `${getPublicApiUrl()}/api/reservations`,
-        "http://localhost:8888/api/reservations",
-      ]),
+      new Set(
+        [
+          getServerApiUrl() ? `${getServerApiUrl()}/api/reservations` : null,
+          getPublicApiUrl() ? `${getPublicApiUrl()}/api/reservations` : null,
+        ].filter(Boolean) as string[]
+      )
     );
 
     for (const url of targetUrls) {

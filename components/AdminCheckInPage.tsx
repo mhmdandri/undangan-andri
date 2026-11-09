@@ -33,7 +33,10 @@ import {
 } from "react-icons/lu";
 import { getPublicApiUrl } from "@/utils/api";
 import { playChime, unlockAudio } from "@/utils/qr";
-import { buildInvitationUrl } from "@/utils/invitation";
+import {
+  buildInvitationUrl,
+  buildInvitationMessage,
+} from "@/utils/invitation";
 
 export type GuestCheckInItem = {
   id?: number;
@@ -166,13 +169,15 @@ export default function AdminCheckInPage() {
 
   // Fetch all guests
   const fetchAllGuests = useCallback(async (isRefresh = false) => {
+    const publicApi = getPublicApiUrl();
     const endpoints = Array.from(
-      new Set([
-        "/api/reservations?all=true",
-        "http://localhost:8888/api/reservations?all=true",
-        `${getPublicApiUrl()}/api/reservations?all=true`,
-        "/api/reservations?limit=1000",
-      ])
+      new Set(
+        [
+          publicApi ? `${publicApi}/api/reservations?all=true` : null,
+          "/api/reservations?all=true",
+          "/api/reservations?limit=1000",
+        ].filter(Boolean) as string[],
+      ),
     );
 
     let loaded = false;
@@ -253,12 +258,14 @@ export default function AdminCheckInPage() {
       actual_guest: Number(paxCount) || 1,
     };
 
+    const publicApi = getPublicApiUrl();
     const checkInEndpoints = Array.from(
-      new Set([
-        "/api/reservations/check-in",
-        "http://localhost:8888/api/reservations/check-in",
-        `${getPublicApiUrl()}/api/reservations/check-in`,
-      ])
+      new Set(
+        [
+          publicApi ? `${publicApi}/api/reservations/check-in` : null,
+          "/api/reservations/check-in",
+        ].filter(Boolean) as string[],
+      ),
     );
 
     let successResponse: CheckInApiResponse | null = null;
@@ -1366,14 +1373,17 @@ export default function AdminCheckInPage() {
                   type="button"
                   onClick={() =>
                     handleCopy(
-                      buildInvitationUrl(detailGuest.name, detailGuest.code),
-                      detailGuest.code
+                      buildInvitationMessage(
+                        detailGuest.name,
+                        buildInvitationUrl(detailGuest.name, detailGuest.code),
+                      ),
+                      detailGuest.code,
                     )
                   }
                   className="flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center gap-1.5 transition"
                 >
                   <LuCopy className="w-3.5 h-3.5" />
-                  <span>Salin Link</span>
+                  <span>Salin Undangan</span>
                 </button>
                 <a
                   href={buildInvitationUrl(detailGuest.name, detailGuest.code)}

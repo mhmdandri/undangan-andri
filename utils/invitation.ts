@@ -82,6 +82,35 @@ export function formatWhatsappNumber(phoneStr: string): string {
 }
 
 /**
+ * Builds the personalized invitation message format for copying or WhatsApp sharing.
+ */
+export function buildInvitationMessage(
+  name: string,
+  inviteUrl: string
+): string {
+  const cleanName = (name || "").trim() || "Bapak/Ibu/Saudara/i";
+  return `Kepada Yth.
+${cleanName}
+
+Assalamualaikum Warahmatullahi Wabarakatuh
+
+Dengan memohon Rahmat dan Ridho Allah SWT, serta tanpa mengurangi rasa hormat melalui pesan ini kami mengundang Bapak/Ibu/Saudara/I untuk menghadiri acara pernikahan kami :
+
+Cica Purwanti, S.Pd, Gr & Muhamad Andriyansyah, S.Kom
+
+Berikut link undangan kami, untuk info lengkap acara bisa kunjungi :
+${inviteUrl}
+
+Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.
+
+Terima kasih banyak atas perhatiannya.
+Wassalamualaikum Warahmatullahi Wabarakatuh
+
+Salam hangat dari kami sekeluarga.
+Cica & Andri`;
+}
+
+/**
  * Generates the full WhatsApp send URL with personalized greeting and Format #2 invitation URL.
  */
 export function buildWhatsappShareUrl(
@@ -92,24 +121,7 @@ export function buildWhatsappShareUrl(
 ): string {
   const cleanPhone = formatWhatsappNumber(phone);
   const finalInviteUrl = inviteUrl || buildInvitationUrl(name, code);
-
-  const text = `Kepada Yth. *${name}*,
-
-Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada pernikahan kami:
-
-*The Wedding of Andri & Cica*
-📅 Sabtu, 21 November 2026
-
-Berikut tautan undangan digital dan tiket check-in reservasi Anda:
-🔗 ${finalInviteUrl}
-
-*Kode Reservasi Masuk:* *${code}*
-(Tunjukkan QR Code di undangan ini saat tiba di meja penerima tamu).
-
-Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Anda berkenan hadir. Terima kasih.
-
-Salam hangat,
-*Andri & Cica*`;
+  const text = buildInvitationMessage(name, finalInviteUrl);
 
   return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
 }

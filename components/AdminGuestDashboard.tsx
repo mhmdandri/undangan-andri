@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
 import { toast } from "react-toastify";
@@ -34,10 +28,15 @@ import {
   LuMail,
   LuPhone,
   LuSparkles,
+  LuPencil,
 } from "react-icons/lu";
 import { FaWhatsapp } from "react-icons/fa";
 import { getPublicApiUrl } from "@/utils/api";
-import { buildInvitationUrl, buildWhatsappShareUrl } from "@/utils/invitation";
+import {
+  buildInvitationUrl,
+  buildWhatsappShareUrl,
+  buildInvitationMessage,
+} from "@/utils/invitation";
 import Image from "next/image";
 
 type ExcelGuestRow = {
@@ -87,6 +86,11 @@ export default function AdminGuestDashboard() {
   const [selectedQrGuest, setSelectedQrGuest] = useState<ImportedGuest | null>(
     null,
   );
+
+  // State Edit Nama Tamu
+  const [editingGuest, setEditingGuest] = useState<ImportedGuest | null>(null);
+  const [editNameInput, setEditNameInput] = useState<string>("");
+  const [isSavingEdit, setIsSavingEdit] = useState<boolean>(false);
 
   // State Database Tamu
   // State Database Tamu & Pagination
@@ -155,12 +159,14 @@ export default function AdminGuestDashboard() {
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
 
+      const publicApi = getPublicApiUrl();
       const endpoints = Array.from(
-        new Set([
-          `/api/reservations${queryString}`,
-          `http://localhost:8888/api/reservations${queryString}`,
-          `${getPublicApiUrl()}/api/reservations${queryString}`,
-        ]),
+        new Set(
+          [
+            publicApi ? `${publicApi}/api/reservations${queryString}` : null,
+            `/api/reservations${queryString}`,
+          ].filter(Boolean) as string[],
+        ),
       );
 
       let loaded = false;
@@ -296,10 +302,127 @@ export default function AdminGuestDashboard() {
   const handleCopy = (text: string, identifier: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(identifier);
-    toast.success("Link berhasil disalin ke clipboard!");
+    toast.success("Format undangan berhasil disalin ke clipboard!");
     setTimeout(() => {
       setCopiedCode(null);
     }, 3000);
+  };
+
+  // Handler Edit Nama Tamu
+  const handleOpenEditModal = (guest: ImportedGuest) => {
+    setEditingGuest(guest);
+    setEditNameInput(guest.name || "");
+  };
+
+  const handleSaveEditGuestName = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editingGuest) return;
+
+    const trimmedName = editNameInput.trim();
+    if (!trimmedName) {
+      toast.error("Nama tamu tidak boleh kosong!");
+      return;
+    }
+
+    if (trimmedName === editingGuest.name) {
+      setEditingGuest(null);
+      return;
+    }
+
+    setIsSavingEdit(true);
+
+    const payload = {
+      name: trimmedName,
+    };
+
+    const publicApi = getPublicApiUrl();
+    const targetEndpoints = Array.from(
+      new Set(
+        [
+          publicApi
+            ? `${publicApi}/api/reservations/${encodeURIComponent(editingGuest.code)}`
+            : null,
+          `/api/reservations/${encodeURIComponent(editingGuest.code)}`,
+        ].filter(Boolean) as string[],
+      ),
+    );
+
+    let success = false;
+    let lastError = "";
+
+    for (const url of targetEndpoints) {
+      for (const method of ["PUT", "PATCH"]) {
+        try {
+          const res = await fetch(url, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(6000),
+          });
+
+          const raw = await res.text();
+          let json: {
+            data?: ImportedGuest;
+            message?: string;
+            error?: string;
+          } | null = null;
+          try {
+            json = JSON.parse(raw);
+          } catch {
+            json = null;
+          }
+
+          if (res.ok) {
+            success = true;
+            break;
+          }
+
+          if (json?.error || json?.message) {
+            lastError = json.error || json.message || "";
+            if (res.status === 400) break;
+          }
+        } catch (err: unknown) {
+          lastError = err instanceof Error ? err.message : String(err);
+        }
+      }
+      if (success) break;
+    }
+
+    setIsSavingEdit(false);
+
+    if (success) {
+      toast.success("Nama tamu berhasil diperbarui!");
+      const targetCode = editingGuest.code;
+      // Perbarui data di state lokal secara reaktif
+      setDbGuests((prev) =>
+        prev.map((g) =>
+          g.code === targetCode ? { ...g, name: trimmedName } : g,
+        ),
+      );
+      setImportedResult((prev) =>
+        prev.map((g) =>
+          g.code === targetCode ? { ...g, name: trimmedName } : g,
+        ),
+      );
+      setNewlyCreatedGuest((prev) =>
+        prev && prev.code === targetCode
+          ? { ...prev, name: trimmedName }
+          : prev,
+      );
+      setSelectedQrGuest((prev) =>
+        prev && prev.code === targetCode
+          ? { ...prev, name: trimmedName }
+          : prev,
+      );
+      setEditingGuest(null);
+    } else {
+      toast.error(
+        lastError ||
+          "Gagal memperbarui nama tamu. Pastikan server backend aktif.",
+      );
+    }
   };
 
   // Download Contoh Template Excel
@@ -351,7 +474,7 @@ export default function AdminGuestDashboard() {
     setNewlyCreatedGuest(null);
   };
 
-  // Submit tambah tamu dadakan ke API (http://localhost:8888/api/reservations)
+  // Submit tambah tamu dadakan ke API
   const handleAddGuest = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = addName.trim();
@@ -372,12 +495,14 @@ export default function AdminGuestDashboard() {
       source: "pre_registered",
     };
 
+    const publicApi = getPublicApiUrl();
     const targetEndpoints = Array.from(
-      new Set([
-        "http://localhost:8888/api/reservations",
-        "/api/reservations",
-        `${getPublicApiUrl()}/api/reservations`,
-      ]),
+      new Set(
+        [
+          publicApi ? `${publicApi}/api/reservations` : null,
+          "/api/reservations",
+        ].filter(Boolean) as string[],
+      ),
     );
 
     let createdGuest: ImportedGuest | null = null;
@@ -419,8 +544,7 @@ export default function AdminGuestDashboard() {
     if (!createdGuest) {
       setIsAdding(false);
       toast.error(
-        lastError ||
-          "Gagal menambahkan tamu. Pastikan server Go port 8888 aktif di http://localhost:8888.",
+        lastError || "Gagal menambahkan tamu. Pastikan server backend aktif.",
       );
       return;
     }
@@ -428,12 +552,14 @@ export default function AdminGuestDashboard() {
     // Jika opsi check-in langsung diaktifkan, proses check-in kehadiran sekarang juga
     if (addDirectCheckIn && createdGuest.code) {
       try {
+        const publicApi = getPublicApiUrl();
         const checkInEndpoints = Array.from(
-          new Set([
-            "http://localhost:8888/api/reservations/check-in",
-            "/api/reservations/check-in",
-            `${getPublicApiUrl()}/api/reservations/check-in`,
-          ]),
+          new Set(
+            [
+              publicApi ? `${publicApi}/api/reservations/check-in` : null,
+              "/api/reservations/check-in",
+            ].filter(Boolean) as string[],
+          ),
         );
         for (const ciUrl of checkInEndpoints) {
           try {
@@ -695,12 +821,14 @@ export default function AdminGuestDashboard() {
         })),
       };
 
+      const publicApi = getPublicApiUrl();
       const targetEndpoints = Array.from(
-        new Set([
-          "/api/reservations/batch",
-          "http://localhost:8888/api/reservations/batch",
-          `${getPublicApiUrl()}/api/reservations/batch`,
-        ]),
+        new Set(
+          [
+            publicApi ? `${publicApi}/api/reservations/batch` : null,
+            "/api/reservations/batch",
+          ].filter(Boolean) as string[],
+        ),
       );
 
       let successData: { data?: ImportedGuest[]; message?: string } | null =
@@ -748,7 +876,7 @@ export default function AdminGuestDashboard() {
       if (!successData) {
         throw new Error(
           lastErrorMessage ||
-            "Gagal import data. Pastikan server Go port 8888 aktif dan route /api/reservations/batch terpasang.",
+            "Gagal import data. Pastikan server backend aktif dan route /api/reservations/batch terpasang.",
         );
       }
 
@@ -848,11 +976,15 @@ export default function AdminGuestDashboard() {
   const handleExportAllDbGuests = async () => {
     setIsLoadingDb(true);
     try {
-      const endpoints = [
-        "/api/reservations?all=true",
-        "http://localhost:8888/api/reservations?all=true",
-        `${getPublicApiUrl()}/api/reservations?all=true`,
-      ];
+      const publicApi = getPublicApiUrl();
+      const endpoints = Array.from(
+        new Set(
+          [
+            publicApi ? `${publicApi}/api/reservations?all=true` : null,
+            "/api/reservations?all=true",
+          ].filter(Boolean) as string[],
+        ),
+      );
       let exported = false;
       for (const endpoint of endpoints) {
         try {
@@ -1313,9 +1445,14 @@ export default function AdminGuestDashboard() {
 
                           <div className="flex items-center gap-1.5">
                             <button
-                              onClick={() => handleCopy(inviteUrl, guest.code)}
+                              onClick={() =>
+                                handleCopy(
+                                  buildInvitationMessage(guest.name, inviteUrl),
+                                  guest.code,
+                                )
+                              }
                               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
-                              title="Salin Link"
+                              title="Salin Format Undangan"
                             >
                               {copiedCode === guest.code ? (
                                 <LuCheck className="w-4 h-4 text-emerald-400" />
@@ -1422,10 +1559,16 @@ export default function AdminGuestDashboard() {
                                 />
                                 <button
                                   onClick={() =>
-                                    handleCopy(inviteUrl, guest.code)
+                                    handleCopy(
+                                      buildInvitationMessage(
+                                        guest.name,
+                                        inviteUrl,
+                                      ),
+                                      guest.code,
+                                    )
                                   }
                                   className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
-                                  title="Salin Link"
+                                  title="Salin Format Undangan"
                                 >
                                   {copiedCode === guest.code ? (
                                     <LuCheck className="w-4 h-4 text-emerald-400" />
@@ -1677,9 +1820,23 @@ export default function AdminGuestDashboard() {
 
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
-                              onClick={() => handleCopy(inviteUrl, guest.code)}
+                              type="button"
+                              onClick={() => handleOpenEditModal(guest)}
+                              className="p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/20 text-amber-300 hover:text-amber-200 transition cursor-pointer"
+                              title="Edit Nama Tamu"
+                            >
+                              <LuPencil className="w-4 h-4" />
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                handleCopy(
+                                  buildInvitationMessage(guest.name, inviteUrl),
+                                  guest.code,
+                                )
+                              }
                               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
-                              title="Salin Link Undangan"
+                              title="Salin Format Undangan"
                             >
                               {copiedCode === guest.code ? (
                                 <LuCheck className="w-4 h-4 text-emerald-400" />
@@ -1830,11 +1987,26 @@ export default function AdminGuestDashboard() {
                               <td className="py-3 px-4 text-right">
                                 <div className="inline-flex items-center gap-1.5">
                                   <button
+                                    type="button"
+                                    onClick={() => handleOpenEditModal(guest)}
+                                    className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/20 text-amber-300 hover:text-amber-200 transition cursor-pointer"
+                                    title="Edit Nama Tamu"
+                                  >
+                                    <LuPencil className="w-4 h-4" />
+                                  </button>
+
+                                  <button
                                     onClick={() =>
-                                      handleCopy(inviteUrl, guest.code)
+                                      handleCopy(
+                                        buildInvitationMessage(
+                                          guest.name,
+                                          inviteUrl,
+                                        ),
+                                        guest.code,
+                                      )
                                     }
                                     className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 transition"
-                                    title="Salin Link Undangan"
+                                    title="Salin Format Undangan"
                                   >
                                     {copiedCode === guest.code ? (
                                       <LuCheck className="w-4 h-4 text-emerald-400" />
@@ -2285,11 +2457,15 @@ export default function AdminGuestDashboard() {
                           <button
                             onClick={() =>
                               handleCopy(
-                                inviteUrl,
+                                buildInvitationMessage(
+                                  newlyCreatedGuest.name,
+                                  inviteUrl,
+                                ),
                                 "url-" + newlyCreatedGuest.code,
                               )
                             }
                             className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition shrink-0 flex items-center gap-1.5 cursor-pointer"
+                            title="Salin Format Undangan"
                           >
                             {copiedCode === "url-" + newlyCreatedGuest.code ? (
                               <LuCheck className="w-4 h-4 text-emerald-400" />
@@ -2450,10 +2626,16 @@ export default function AdminGuestDashboard() {
 
                       <button
                         onClick={() =>
-                          handleCopy(inviteUrl, selectedQrGuest.code)
+                          handleCopy(
+                            buildInvitationMessage(
+                              selectedQrGuest.name,
+                              inviteUrl,
+                            ),
+                            selectedQrGuest.code,
+                          )
                         }
                         className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5"
-                        title="Salin Link Undangan"
+                        title="Salin Format Undangan"
                       >
                         {copiedCode === selectedQrGuest.code ? (
                           <LuCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -2463,7 +2645,7 @@ export default function AdminGuestDashboard() {
                         <span>
                           {copiedCode === selectedQrGuest.code
                             ? "Tersalin"
-                            : "Salin Link"}
+                            : "Salin Undangan"}
                         </span>
                       </button>
 
@@ -2499,6 +2681,120 @@ export default function AdminGuestDashboard() {
                 </>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Nama Tamu */}
+      {editingGuest && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          onClick={() => {
+            if (!isSavingEdit) setEditingGuest(null);
+          }}
+        >
+          <div
+            className="bg-[#12151f] border border-amber-500/30 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Tutup */}
+            <button
+              onClick={() => {
+                if (!isSavingEdit) setEditingGuest(null);
+              }}
+              disabled={isSavingEdit}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition disabled:opacity-50 cursor-pointer"
+              title="Tutup"
+            >
+              ✕
+            </button>
+
+            {/* Header Modal */}
+            <div className="flex items-center gap-3 mb-2">
+              <span className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                <LuPencil className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="font-playfair text-lg font-bold text-white">
+                  Edit Nama Tamu
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Perbarui nama tamu undangan di database
+                </p>
+              </div>
+            </div>
+
+            {/* Info Badge Kode Reservasi */}
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-3.5 my-4 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-[10px] text-slate-400 block uppercase font-mono tracking-wider">
+                  Kode Reservasi
+                </span>
+                <span className="font-mono font-bold text-amber-300 text-sm tracking-wider">
+                  {editingGuest.code}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-400 block uppercase font-mono tracking-wider">
+                  Kuota Pax
+                </span>
+                <span className="font-semibold text-slate-200">
+                  {editingGuest.total_guests || editingGuest.quota_guests || 1}{" "}
+                  Pax
+                </span>
+              </div>
+            </div>
+
+            {/* Form Edit */}
+            <form onSubmit={handleSaveEditGuestName} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Nama Tamu Undangan <span className="text-amber-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={editNameInput}
+                  onChange={(e) => setEditNameInput(e.target.value)}
+                  disabled={isSavingEdit}
+                  placeholder="Contoh: Bpk. Bambang & Istri"
+                  className="w-full bg-black/50 border border-white/15 focus:border-amber-400 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition disabled:opacity-50"
+                />
+                <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                  Perubahan nama akan langsung tersimpan di database serta otomatis terupdate pada link undangan dan tiket QR tamu.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setEditingGuest(null)}
+                  disabled={isSavingEdit}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEdit || !editNameInput.trim()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isSavingEdit ? (
+                    <>
+                      <LuRefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LuCheck className="w-3.5 h-3.5" />
+                      <span>Simpan Perubahan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
