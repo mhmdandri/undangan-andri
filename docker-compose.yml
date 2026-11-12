@@ -6,8 +6,8 @@ services:
     image: undangan-andri:latest
     env_file:
       - .env
-    ports:
-      - "3004:3000"
+    expose:
+      - "3000"
     restart: unless-stopped
     container_name: undangan-andri
     networks:
