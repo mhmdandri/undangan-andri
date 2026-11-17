@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
       });
 
       const rawText = await response.text();
-      let data: { data?: Array<{ name?: string; code?: string }> } | null = null;
+      let data: {
+        data?: Array<{ name?: string; code?: string; phone?: string }>;
+      } | null = null;
       try {
         data = JSON.parse(rawText);
       } catch {
@@ -46,7 +48,8 @@ export async function GET(request: NextRequest) {
           const filtered = data.data.filter((item) => {
             const matchesName = (item.name || "").toLowerCase().includes(query);
             const matchesCode = (item.code || "").toLowerCase().includes(query);
-            return matchesName || matchesCode;
+            const matchesPhone = (item.phone || "").toLowerCase().includes(query);
+            return matchesName || matchesCode || matchesPhone;
           });
 
           return NextResponse.json(

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -17,7 +18,6 @@ import {
   LuVolume2,
   LuVolumeX,
   LuX,
-  LuPhone,
   LuExternalLink,
   LuCopy,
 } from "react-icons/lu";
@@ -57,11 +57,27 @@ type CheckInApiResponse = {
 };
 
 export default function AdminCheckInPage() {
+  const searchParams = useSearchParams();
+
+  // Ambil query pencarian awal dari parameter URL jika ada (?code=, ?name=, ?q=)
+  const initialQuery = useMemo(() => {
+    if (!searchParams) return "";
+    return (
+      searchParams.get("code") ||
+      searchParams.get("name") ||
+      searchParams.get("q") ||
+      searchParams.get("search") ||
+      ""
+    );
+  }, [searchParams]);
+
   const [guests, setGuests] = useState<GuestCheckInItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(
+    initialQuery.trim(),
+  );
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
   // Tracking state check-in
@@ -178,86 +194,115 @@ export default function AdminCheckInPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [successModalData, handleCloseSuccessModal, detailGuest, searchQuery]);
 
-  // Debounce search 250ms
+  // Server-side search: cari tamu ke backend secara asinkron saat user mengetik
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery.trim());
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Fetch all guests
-  const fetchAllGuests = useCallback(async (isRefresh = false) => {
-    const publicApi = getPublicApiUrl();
-    const endpoints = Array.from(
-      new Set(
-        [
-          publicApi ? `${publicApi}/api/reservations?all=true` : null,
-          "/api/reservations?all=true",
-          "/api/reservations?limit=1000",
-        ].filter(Boolean) as string[],
-      ),
-    );
-
-    let loaded = false;
-    for (const url of endpoints) {
-      try {
-        const res = await fetch(url, {
-          cache: "no-store",
-          signal: AbortSignal.timeout(6000),
-        });
-
-        const raw = await res.text();
-        let json: { data?: GuestCheckInItem[] } | null = null;
-        try {
-          json = JSON.parse(raw);
-        } catch {
-          json = null;
-        }
-
-        if (res.ok && Array.isArray(json?.data)) {
-          // Sort alphabetically by name
-          const sorted = [...json.data].sort((a, b) =>
-            (a.name || "").localeCompare(b.name || "", "id", {
-              sensitivity: "base",
-            }),
-          );
-          setGuests(sorted);
-          loaded = true;
-          break;
-        }
-      } catch {
-        // Continue to fallback endpoint
-      }
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setDebouncedSearch("");
+      setGuests([]);
+      setIsLoading(false);
+      return;
     }
 
-    if (!loaded) {
-      toast.error(
-        "Gagal memuat daftar tamu dari backend. Pastikan server Go aktif.",
-      );
-    } else if (isRefresh) {
-      toast.success("Daftar tamu berhasil diperbarui!");
-    }
-
-    setIsLoading(false);
-    setIsRefreshing(false);
-  }, []);
-
-  // Initial load
-  useEffect(() => {
+    setIsLoading(true);
     let isCancelled = false;
 
-    const timer = setTimeout(() => {
-      if (!isCancelled) {
-        fetchAllGuests();
+    const timer = setTimeout(async () => {
+      setDebouncedSearch(trimmed);
+
+      try {
+        const publicApi = getPublicApiUrl();
+        const endpoints = Array.from(
+          new Set(
+            [
+              `/api/reservations?q=${encodeURIComponent(trimmed)}`,
+              publicApi
+                ? `${publicApi}/api/reservations?q=${encodeURIComponent(trimmed)}`
+                : null,
+            ].filter(Boolean) as string[],
+          ),
+        );
+
+        let loaded = false;
+        for (const url of endpoints) {
+          try {
+            const res = await fetch(url, {
+              cache: "no-store",
+              signal: AbortSignal.timeout(6000),
+            });
+
+            const raw = await res.text();
+            let json: { data?: GuestCheckInItem[] } | null = null;
+            try {
+              json = JSON.parse(raw);
+            } catch {
+              json = null;
+            }
+
+            if (res.ok && Array.isArray(json?.data) && !isCancelled) {
+              const sorted = [...json.data].sort((a, b) =>
+                (a.name || "").localeCompare(b.name || "", "id", {
+                  sensitivity: "base",
+                }),
+              );
+              setGuests(sorted);
+              loaded = true;
+              break;
+            }
+          } catch {
+            // Coba endpoint fallback berikutnya
+          }
+        }
+
+        if (!loaded && !isCancelled) {
+          setGuests([]);
+        }
+      } catch {
+        if (!isCancelled) {
+          setGuests([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
-    }, 0);
+    }, 300);
 
     return () => {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [fetchAllGuests]);
+  }, [searchQuery]);
+
+  // Refresh data tamu yang sedang dicari
+  const handleRefresh = useCallback(async () => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    setIsRefreshing(true);
+    try {
+      const res = await fetch(
+        `/api/reservations?q=${encodeURIComponent(trimmed)}`,
+        {
+          cache: "no-store",
+          signal: AbortSignal.timeout(6000),
+        },
+      );
+      const json = await res.json().catch(() => null);
+      if (res.ok && Array.isArray(json?.data)) {
+        const sorted = [...json.data].sort((a, b) =>
+          (a.name || "").localeCompare(b.name || "", "id", {
+            sensitivity: "base",
+          }),
+        );
+        setGuests(sorted);
+        toast.success("Data pencarian berhasil diperbarui!");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [searchQuery]);
 
   // Check-In Handler
   const handleCheckIn = async (guest: GuestCheckInItem, customPax?: number) => {
@@ -461,18 +506,12 @@ export default function AdminCheckInPage() {
     }
   };
 
-  // Filtered & Searched Guests
-  const filteredGuests = useMemo(() => {
-    const q = debouncedSearch.toLowerCase();
-    if (!q) return guests;
+  // Status pencarian aktif (seperti di list-guest)
+  const isSearching =
+    debouncedSearch.length > 0 || searchQuery.trim().length > 0;
 
-    return guests.filter((g) => {
-      const nameMatch = (g.name || "").toLowerCase().includes(q);
-      const codeMatch = (g.code || "").toLowerCase().includes(q);
-      const phoneMatch = (g.phone || "").toLowerCase().includes(q);
-      return nameMatch || codeMatch || phoneMatch;
-    });
-  }, [guests, debouncedSearch]);
+  // Filtered Guests: data yang didapat langsung dari server berdasarkan query pencarian
+  const filteredGuests = isSearching ? guests : [];
 
   return (
     <div className="min-h-screen w-full bg-[#08090d] text-slate-100 font-sans pb-28 selection:bg-amber-500/30 selection:text-amber-200">
@@ -483,23 +522,23 @@ export default function AdminCheckInPage() {
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
             <Link
-              href="/admin"
+              href="/guest"
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition shrink-0 border border-white/5"
-              title="Kembali ke Admin Dashboard"
+              title="Kembali ke Halaman Undangan"
             >
               <LuArrowLeft className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
             </Link>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="font-playfair text-base sm:text-lg font-bold bg-linear-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent truncate">
-                  Check-in Tamu
+                  Check-in Kehadiran
                 </h1>
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  Meja Penerima Tamu
+                  Self Check-in
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 truncate hidden xs:block">
-                Cari nama tamu &amp; klik Hadir jika tamu tidak bawa barcode
+                The Wedding of Andri &amp; Cica
               </p>
             </div>
           </div>
@@ -534,11 +573,8 @@ export default function AdminCheckInPage() {
 
             {/* Refresh Button */}
             <button
-              onClick={() => {
-                setIsRefreshing(true);
-                fetchAllGuests(true);
-              }}
-              disabled={isRefreshing || isLoading}
+              onClick={handleRefresh}
+              disabled={isRefreshing || isLoading || !searchQuery.trim()}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition disabled:opacity-50"
               title="Refresh Data Tamu"
             >
@@ -555,16 +591,6 @@ export default function AdminCheckInPage() {
             >
               <LuQrCode className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Scanner QR</span>
-            </Link>
-
-            {/* Admin Dashboard Link */}
-            <Link
-              href="/admin"
-              className="hidden lg:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition"
-              title="Ke Admin Database Tamu"
-            >
-              <LuUserPlus className="w-3.5 h-3.5 text-amber-400" />
-              <span>Database Tamu</span>
             </Link>
           </div>
         </div>
@@ -596,6 +622,7 @@ export default function AdminCheckInPage() {
               <button
                 onClick={() => {
                   setSearchQuery("");
+                  setDebouncedSearch("");
                   searchInputRef.current?.focus();
                 }}
                 className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition"
@@ -620,6 +647,42 @@ export default function AdminCheckInPage() {
               Menghubungkan ke database reservasi
             </p>
           </div>
+        ) : !isSearching ? (
+          /* Tampilan awal: belum mencari, daftar muncul hanya ketika di search (seperti di list-guest) */
+          <div className="relative overflow-hidden bg-linear-to-b from-[#121622]/90 to-[#0e111a]/90 border border-amber-500/20 rounded-3xl p-8 sm:p-12 text-center shadow-2xl backdrop-blur-sm">
+            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 bg-amber-500/10 blur-3xl pointer-events-none rounded-full" />
+
+            <div className="relative z-10 max-w-md mx-auto space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 shadow-inner">
+                <LuSearch className="w-7 h-7" />
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-wide font-playfair">
+                  Cari Nama Tamu atau Kode Tiket
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Ketik nama tamu, kode reservasi 5-digit pada kolom pencarian
+                  di atas untuk melakukan check-in kehadiran.
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-300">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                  <LuUserPlus className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    Pencarian dengan <strong>Nama</strong>
+                  </span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                  <LuQrCode className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    Pencarian dengan <strong>Kode Tiket</strong>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
         ) : filteredGuests.length === 0 ? (
           <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-8 sm:p-12 text-center">
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 text-slate-400">
@@ -629,30 +692,42 @@ export default function AdminCheckInPage() {
               Tidak Ada Tamu Ditemukan
             </h3>
             <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-5">
-              {searchQuery
-                ? `Tidak ditemukan tamu dengan kata kunci "${searchQuery}". Periksa kembali ejaan nama atau gunakan kode 5-digit.`
-                : "Belum ada data tamu terdaftar."}
+              Tidak ditemukan tamu dengan kata kunci &quot;
+              <span className="text-amber-300 font-medium">
+                {searchQuery.trim()}
+              </span>
+              &quot;. Periksa kembali ejaan nama atau gunakan kode tiket
+              5-digit.
             </p>
-            {searchQuery && (
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white transition cursor-pointer"
-                >
-                  Reset Pencarian
-                </button>
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 transition"
-                >
-                  <LuUserPlus className="w-4 h-4" />
-                  <span>Tambah Tamu Dadakan</span>
-                </Link>
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setDebouncedSearch("");
+                  searchInputRef.current?.focus();
+                }}
+                className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 transition cursor-pointer"
+              >
+                Reset Pencarian
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Header info hasil pencarian (seperti di list-guest) */}
+            <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+              <p>
+                Menemukan{" "}
+                <strong className="text-white font-mono font-bold">
+                  {filteredGuests.length}
+                </strong>{" "}
+                tamu untuk kata kunci &ldquo;
+                <span className="text-amber-300 font-semibold">
+                  {debouncedSearch || searchQuery}
+                </span>
+                &rdquo;
+              </p>
+            </div>
             {/* ========================================================================= */}
             {/* MOBILE VIEW (CARD LIST for screens < 768px) */}
             {/* ========================================================================= */}
@@ -709,14 +784,6 @@ export default function AdminCheckInPage() {
                           <span className="font-medium text-slate-300">
                             {defaultPax} pax
                           </span>
-                          {guest.phone && (
-                            <>
-                              <span>•</span>
-                              <span className="text-[11px] font-mono text-slate-400">
-                                {guest.phone}
-                              </span>
-                            </>
-                          )}
                         </div>
                       </div>
 
@@ -848,16 +915,6 @@ export default function AdminCheckInPage() {
                                 <span className="font-semibold text-white block text-sm truncate">
                                   {guest.name}
                                 </span>
-                                {guest.phone ? (
-                                  <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
-                                    <LuPhone className="w-3 h-3 text-slate-500" />
-                                    {guest.phone}
-                                  </span>
-                                ) : (
-                                  <span className="text-[11px] text-slate-500">
-                                    Penerima Tamu Manual
-                                  </span>
-                                )}
                               </div>
                             </div>
                           </td>
