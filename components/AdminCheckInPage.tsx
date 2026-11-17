@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "react-toastify";
@@ -18,25 +12,25 @@ import {
   LuRefreshCw,
   LuCircleCheck,
   LuCheck,
-  LuUserCheck,
   LuUserPlus,
   LuClock,
-  LuUsers,
   LuVolume2,
   LuVolumeX,
   LuX,
-  LuSparkles,
   LuPhone,
   LuExternalLink,
   LuCopy,
-  LuSlidersHorizontal,
 } from "react-icons/lu";
+import {
+  BsCheckLg,
+  BsQrCode,
+  BsPeople,
+  BsClock,
+  BsArrowCounterclockwise,
+} from "react-icons/bs";
 import { getPublicApiUrl } from "@/utils/api";
 import { playChime, unlockAudio } from "@/utils/qr";
-import {
-  buildInvitationUrl,
-  buildInvitationMessage,
-} from "@/utils/invitation";
+import { buildInvitationUrl, buildInvitationMessage } from "@/utils/invitation";
 
 export type GuestCheckInItem = {
   id?: number;
@@ -68,10 +62,6 @@ export default function AdminCheckInPage() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "belum" | "hadir">(
-    "all"
-  );
-  const [filterSource, setFilterSource] = useState<string>("all");
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
   // Tracking state check-in
@@ -79,24 +69,44 @@ export default function AdminCheckInPage() {
   const [recentlyCheckedInCodes, setRecentlyCheckedInCodes] = useState<
     Set<string>
   >(new Set());
-  const [lastCheckedInGuest, setLastCheckedInGuest] = useState<{
+  // Modal Success Check-In (seperti di /reservations)
+  const [successModalData, setSuccessModalData] = useState<{
     guest: GuestCheckInItem;
+    actual_guest: number;
+    message: string;
+    is_already: boolean;
     time: string;
-    pax: number;
-    isAlready: boolean;
   } | null>(null);
+  const [modalCountdown, setModalCountdown] = useState<number>(5);
 
-  // Modal Ubah Pax / Check-in Kustom
-  const [paxModalGuest, setPaxModalGuest] = useState<GuestCheckInItem | null>(
-    null
-  );
-  const [customPaxCount, setCustomPaxCount] = useState<number>(2);
+  const handleCloseSuccessModal = useCallback(() => {
+    setSuccessModalData(null);
+    setModalCountdown(5);
+  }, []);
 
   // Modal Info Tamu / QR Code
   const [detailGuest, setDetailGuest] = useState<GuestCheckInItem | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Countdown timer when success modal is displayed (5 seconds auto-close)
+  useEffect(() => {
+    if (!successModalData) return;
+
+    const interval = setInterval(() => {
+      setModalCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setSuccessModalData(null);
+          return 5;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [successModalData]);
 
   // Normal scroll
   useEffect(() => {
@@ -121,9 +131,18 @@ export default function AdminCheckInPage() {
   // Pre-warm audio
   useEffect(() => {
     const handleGesture = () => unlockAudio();
-    window.addEventListener("click", handleGesture, { passive: true, once: true });
-    window.addEventListener("touchstart", handleGesture, { passive: true, once: true });
-    window.addEventListener("keydown", handleGesture, { passive: true, once: true });
+    window.addEventListener("click", handleGesture, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("touchstart", handleGesture, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("keydown", handleGesture, {
+      passive: true,
+      once: true,
+    });
 
     return () => {
       window.removeEventListener("click", handleGesture);
@@ -138,15 +157,15 @@ export default function AdminCheckInPage() {
       if (
         e.key === "/" &&
         document.activeElement !== searchInputRef.current &&
-        !paxModalGuest &&
+        !successModalData &&
         !detailGuest
       ) {
         e.preventDefault();
         searchInputRef.current?.focus();
         searchInputRef.current?.select();
       } else if (e.key === "Escape") {
-        if (paxModalGuest) {
-          setPaxModalGuest(null);
+        if (successModalData) {
+          handleCloseSuccessModal();
         } else if (detailGuest) {
           setDetailGuest(null);
         } else if (searchQuery) {
@@ -157,7 +176,7 @@ export default function AdminCheckInPage() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [paxModalGuest, detailGuest, searchQuery]);
+  }, [successModalData, handleCloseSuccessModal, detailGuest, searchQuery]);
 
   // Debounce search 250ms
   useEffect(() => {
@@ -201,7 +220,7 @@ export default function AdminCheckInPage() {
           const sorted = [...json.data].sort((a, b) =>
             (a.name || "").localeCompare(b.name || "", "id", {
               sensitivity: "base",
-            })
+            }),
           );
           setGuests(sorted);
           loaded = true;
@@ -214,7 +233,7 @@ export default function AdminCheckInPage() {
 
     if (!loaded) {
       toast.error(
-        "Gagal memuat daftar tamu dari backend. Pastikan server Go aktif."
+        "Gagal memuat daftar tamu dari backend. Pastikan server Go aktif.",
       );
     } else if (isRefresh) {
       toast.success("Daftar tamu berhasil diperbarui!");
@@ -241,10 +260,7 @@ export default function AdminCheckInPage() {
   }, [fetchAllGuests]);
 
   // Check-In Handler
-  const handleCheckIn = async (
-    guest: GuestCheckInItem,
-    customPax?: number
-  ) => {
+  const handleCheckIn = async (guest: GuestCheckInItem, customPax?: number) => {
     if (checkingInCode === guest.code) return;
 
     setCheckingInCode(guest.code);
@@ -289,7 +305,12 @@ export default function AdminCheckInPage() {
           json = null;
         }
 
-        if (res.ok && (json?.status === "success" || json?.status === "already_checked_in" || json?.data)) {
+        if (
+          res.ok &&
+          (json?.status === "success" ||
+            json?.status === "already_checked_in" ||
+            json?.data)
+        ) {
           successResponse = json;
           break;
         }
@@ -329,7 +350,7 @@ export default function AdminCheckInPage() {
             };
           }
           return g;
-        })
+        }),
       );
 
       // Add to recently checked in for pulse highlight
@@ -347,52 +368,39 @@ export default function AdminCheckInPage() {
         });
       }, 5000);
 
-      // Set last checked-in guest banner
-      const updatedGuest: GuestCheckInItem = {
-        ...guest,
+      // Set success check-in modal data (tampil seperti di halaman /reservations)
+      const returnedGuest: GuestCheckInItem = {
+        ...(successResponse.data || guest),
         is_present: true,
         status: "hadir",
-        attended_at: nowStr,
+        attended_at:
+          successResponse.data?.attended_at || guest.attended_at || nowStr,
         total_guests: paxCount,
       };
 
-      setLastCheckedInGuest({
-        guest: updatedGuest,
+      setModalCountdown(5);
+      setSuccessModalData({
+        guest: returnedGuest,
+        actual_guest: paxCount,
+        message:
+          successResponse.message ||
+          (isAlready
+            ? "Tamu ini sudah melakukan check-in kehadiran sebelumnya!"
+            : "Check-in kehadiran tamu berhasil dikonfirmasi!"),
+        is_already: isAlready,
         time: timeDisplay,
-        pax: paxCount,
-        isAlready,
       });
-
-      // Toast feedback
-      if (isAlready) {
-        toast.info(
-          `ℹ️ Tamu "${guest.name}" sudah tercatat hadir sebelumnya.`
-        );
-      } else {
-        toast.success(
-          `🎉 Berhasil! "${guest.name}" tercatat HADIR (${paxCount} pax)`
-        );
-      }
-
-      // Close modal if open
-      setPaxModalGuest(null);
     } else {
       if (soundEnabled) {
         playChime("error");
       }
       toast.error(
         errorMessage ||
-          "Gagal memproses check-in. Pastikan server backend terhubung."
+          "Gagal memproses check-in. Pastikan server backend terhubung.",
       );
     }
 
     setCheckingInCode(null);
-  };
-
-  // Open Pax Adjust Modal
-  const openPaxModal = (guest: GuestCheckInItem) => {
-    setPaxModalGuest(guest);
-    setCustomPaxCount(guest.total_guests || guest.quota_guests || 2);
   };
 
   // Copy helper
@@ -424,10 +432,30 @@ export default function AdminCheckInPage() {
     if (!dateStr) return "-";
     try {
       const d = new Date(dateStr);
-      return d.toLocaleTimeString("id-ID", {
+      return (
+        d.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }) + " WIB"
+      );
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Format datetime for success modal (similar to /reservations)
+  const formatModalDateTime = (dateStr?: string | null) => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString("id-ID", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      }) + " WIB";
+      });
     } catch {
       return dateStr;
     }
@@ -436,43 +464,15 @@ export default function AdminCheckInPage() {
   // Filtered & Searched Guests
   const filteredGuests = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
+    if (!q) return guests;
 
     return guests.filter((g) => {
-      // Search match
       const nameMatch = (g.name || "").toLowerCase().includes(q);
       const codeMatch = (g.code || "").toLowerCase().includes(q);
       const phoneMatch = (g.phone || "").toLowerCase().includes(q);
-      const matchesSearch = !q || nameMatch || codeMatch || phoneMatch;
-
-      // Status match
-      const isCheckedIn = Boolean(
-        g.is_present || g.status?.toLowerCase() === "hadir"
-      );
-      const matchesStatus =
-        filterStatus === "all" ||
-        (filterStatus === "hadir" && isCheckedIn) ||
-        (filterStatus === "belum" && !isCheckedIn);
-
-      // Source match
-      const matchesSource =
-        filterSource === "all" ||
-        (filterSource === "pre_registered" && g.source === "pre_registered") ||
-        (filterSource === "self_registered" && g.source !== "pre_registered");
-
-      return matchesSearch && matchesStatus && matchesSource;
+      return nameMatch || codeMatch || phoneMatch;
     });
-  }, [guests, debouncedSearch, filterStatus, filterSource]);
-
-  // Overall Stats
-  const stats = useMemo(() => {
-    const total = guests.length;
-    const hadir = guests.filter(
-      (g) => g.is_present || g.status?.toLowerCase() === "hadir"
-    ).length;
-    const belum = total - hadir;
-    const percentage = total > 0 ? Math.round((hadir / total) * 100) : 0;
-    return { total, hadir, belum, percentage };
-  }, [guests]);
+  }, [guests, debouncedSearch]);
 
   return (
     <div className="min-h-screen w-full bg-[#08090d] text-slate-100 font-sans pb-28 selection:bg-amber-500/30 selection:text-amber-200">
@@ -513,7 +513,7 @@ export default function AdminCheckInPage() {
                 toast.info(
                   soundEnabled
                     ? "Suara check-in dinonaktifkan."
-                    : "Suara check-in diaktifkan!"
+                    : "Suara check-in diaktifkan!",
                 );
               }}
               className={`p-2 rounded-xl border transition ${
@@ -521,7 +521,9 @@ export default function AdminCheckInPage() {
                   ? "bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20"
                   : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"
               }`}
-              title={soundEnabled ? "Matikan Suara Chime" : "Nyalakan Suara Chime"}
+              title={
+                soundEnabled ? "Matikan Suara Chime" : "Nyalakan Suara Chime"
+              }
             >
               {soundEnabled ? (
                 <LuVolume2 className="w-4 h-4" />
@@ -573,151 +575,11 @@ export default function AdminCheckInPage() {
       {/* ========================================================================= */}
       <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         {/* ========================================================================= */}
-        {/* BANNER NOTIFIKASI TAMU BARU SAJA HADIR */}
-        {/* ========================================================================= */}
-        <AnimatePresence>
-          {lastCheckedInGuest && (
-            <motion.div
-              initial={{ opacity: 0, y: -16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -16, scale: 0.98 }}
-              transition={{ duration: 0.25 }}
-              className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-linear-to-r from-emerald-950/60 via-emerald-900/40 to-transparent border border-emerald-500/40 shadow-lg shadow-emerald-950/50 flex items-center justify-between gap-3 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                  <LuCircleCheck className="w-5 h-5 animate-bounce" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">
-                      Check-in Berhasil
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      pukul {lastCheckedInGuest.time}
-                    </span>
-                  </div>
-                  <h4 className="text-sm sm:text-base font-bold text-white truncate">
-                    {lastCheckedInGuest.guest.name}
-                  </h4>
-                  <p className="text-xs text-slate-300">
-                    Kode Tiket:{" "}
-                    <span className="font-mono font-bold text-amber-300">
-                      {lastCheckedInGuest.guest.code}
-                    </span>{" "}
-                    • Pax:{" "}
-                    <span className="font-semibold text-white">
-                      {lastCheckedInGuest.pax} Orang
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setLastCheckedInGuest(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0"
-                title="Tutup Notifikasi"
-              >
-                <LuX className="w-4 h-4" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ========================================================================= */}
-        {/* STATS OVERVIEW CARDS */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          {/* Total Tamu */}
-          <div className="bg-linear-to-b from-[#131722] to-[#0e111a] border border-white/10 rounded-2xl p-3.5 sm:p-4 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-slate-400 font-medium">
-                Total Tamu
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-slate-400">
-                <LuUsers className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-white font-mono">
-              {stats.total}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1">
-              Data terdaftar di sistem
-            </div>
-          </div>
-
-          {/* Sudah Hadir */}
-          <div className="bg-linear-to-b from-[#0c221a] to-[#0a1813] border border-emerald-500/30 rounded-2xl p-3.5 sm:p-4 relative overflow-hidden shadow-lg shadow-emerald-950/20">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-emerald-300 font-medium">
-                Sudah Hadir
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <LuCircleCheck className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-emerald-300 font-mono">
-              {stats.hadir}
-            </div>
-            <div className="text-[11px] text-emerald-400/70 mt-1">
-              Check-in terkonfirmasi
-            </div>
-          </div>
-
-          {/* Belum Hadir */}
-          <div className="bg-linear-to-b from-[#1e1b12] to-[#14120e] border border-amber-500/30 rounded-2xl p-3.5 sm:p-4 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-amber-300 font-medium">
-                Belum Hadir
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">
-                <LuClock className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-amber-300 font-mono">
-              {stats.belum}
-            </div>
-            <div className="text-[11px] text-amber-400/70 mt-1">
-              Menunggu kedatangan
-            </div>
-          </div>
-
-          {/* Persentase Kehadiran */}
-          <div className="bg-linear-to-b from-[#131722] to-[#0e111a] border border-white/10 rounded-2xl p-3.5 sm:p-4 relative overflow-hidden col-span-2 lg:col-span-1">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-slate-400 font-medium">
-                Persentase Kehadiran
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
-                <LuSparkles className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <div className="text-xl sm:text-2xl font-bold text-white font-mono">
-                {stats.percentage}%
-              </div>
-              <span className="text-[11px] text-slate-400">
-                {stats.hadir} dari {stats.total}
-              </span>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-full bg-white/10 rounded-full h-1.5 mt-2.5 overflow-hidden">
-              <div
-                className="bg-linear-to-r from-emerald-500 to-amber-400 h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, stats.percentage)}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* SEARCH BAR & CONTROLS */}
+        {/* SEARCH BAR */}
         {/* ========================================================================= */}
         <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-4 sm:p-5 mb-6 shadow-xl">
           {/* Main Search Input */}
-          <div className="relative mb-4">
+          <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-amber-400">
               <LuSearch className="w-5 h-5" />
             </div>
@@ -742,67 +604,6 @@ export default function AdminCheckInPage() {
                 <LuX className="w-5 h-5" />
               </button>
             )}
-          </div>
-
-          {/* Filters & Status Tabs */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-white/5">
-            {/* Status Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-              <button
-                onClick={() => setFilterStatus("all")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer ${
-                  filterStatus === "all"
-                    ? "bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/20"
-                    : "bg-white/5 text-slate-300 hover:bg-white/10"
-                }`}
-              >
-                Semua ({stats.total})
-              </button>
-              <button
-                onClick={() => setFilterStatus("belum")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer ${
-                  filterStatus === "belum"
-                    ? "bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/20"
-                    : "bg-white/5 text-amber-300/80 hover:bg-white/10"
-                }`}
-              >
-                Belum Hadir ({stats.belum})
-              </button>
-              <button
-                onClick={() => setFilterStatus("hadir")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer ${
-                  filterStatus === "hadir"
-                    ? "bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20"
-                    : "bg-white/5 text-emerald-400/80 hover:bg-white/10"
-                }`}
-              >
-                Sudah Hadir ({stats.hadir})
-              </button>
-            </div>
-
-            {/* Source Filter Dropdown & Results Counter */}
-            <div className="flex items-center justify-between sm:justify-end gap-3 text-xs">
-              <div className="flex items-center gap-1.5">
-                <LuSlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-                <select
-                  value={filterSource}
-                  onChange={(e) => setFilterSource(e.target.value)}
-                  className="bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-slate-300 text-xs focus:outline-none focus:border-amber-400"
-                >
-                  <option value="all">Semua Kategori</option>
-                  <option value="pre_registered">VIP (Pre-reg)</option>
-                  <option value="self_registered">Mandiri (RSVP)</option>
-                </select>
-              </div>
-
-              <div className="text-slate-400">
-                Menampilkan{" "}
-                <span className="font-semibold text-white font-mono">
-                  {filteredGuests.length}
-                </span>{" "}
-                tamu
-              </div>
-            </div>
           </div>
         </div>
 
@@ -830,7 +631,7 @@ export default function AdminCheckInPage() {
             <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-5">
               {searchQuery
                 ? `Tidak ditemukan tamu dengan kata kunci "${searchQuery}". Periksa kembali ejaan nama atau gunakan kode 5-digit.`
-                : "Belum ada tamu yang sesuai dengan filter yang dipilih."}
+                : "Belum ada data tamu terdaftar."}
             </p>
             {searchQuery && (
               <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -858,11 +659,14 @@ export default function AdminCheckInPage() {
             <div className="md:hidden space-y-3">
               {filteredGuests.map((guest, idx) => {
                 const isCheckedIn = Boolean(
-                  guest.is_present || guest.status?.toLowerCase() === "hadir"
+                  guest.is_present || guest.status?.toLowerCase() === "hadir",
                 );
                 const isProcessing = checkingInCode === guest.code;
-                const isRecentlyCheckedIn = recentlyCheckedInCodes.has(guest.code);
-                const defaultPax = guest.total_guests || guest.quota_guests || 1;
+                const isRecentlyCheckedIn = recentlyCheckedInCodes.has(
+                  guest.code,
+                );
+                const defaultPax =
+                  guest.total_guests || guest.quota_guests || 1;
 
                 return (
                   <motion.div
@@ -875,8 +679,8 @@ export default function AdminCheckInPage() {
                       isRecentlyCheckedIn
                         ? "bg-emerald-950/40 border-emerald-500/60 shadow-lg shadow-emerald-950/40"
                         : isCheckedIn
-                        ? "bg-[#0b1411] border-emerald-500/20"
-                        : "bg-[#0e111a] border-white/10 hover:border-white/20"
+                          ? "bg-[#0b1411] border-emerald-500/20"
+                          : "bg-[#0e111a] border-white/10 hover:border-white/20"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2.5">
@@ -885,15 +689,6 @@ export default function AdminCheckInPage() {
                           <h3 className="font-bold text-white text-base truncate">
                             {guest.name}
                           </h3>
-                          {guest.source === "pre_registered" ? (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/20">
-                              VIP
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/20">
-                              Mandiri
-                            </span>
-                          )}
                         </div>
 
                         <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -934,7 +729,7 @@ export default function AdminCheckInPage() {
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                            Belum
+                            Belum Hadir
                           </span>
                         )}
                       </div>
@@ -944,56 +739,37 @@ export default function AdminCheckInPage() {
                     {isCheckedIn && guest.attended_at && (
                       <div className="text-[11px] text-emerald-400/80 mb-3 flex items-center gap-1">
                         <LuClock className="w-3 h-3" />
-                        <span>Hadir pada {formatDateTime(guest.attended_at)}</span>
+                        <span>
+                          Hadir pada {formatDateTime(guest.attended_at)}
+                        </span>
                       </div>
                     )}
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 pt-2 border-t border-white/5">
                       {!isCheckedIn ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleCheckIn(guest)}
-                            disabled={isProcessing}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 active:scale-98 transition disabled:opacity-50 cursor-pointer"
-                          >
-                            {isProcessing ? (
-                              <>
-                                <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                                <span>Memproses...</span>
-                              </>
-                            ) : (
-                              <>
-                                <LuCheck className="w-4 h-4" />
-                                <span>Hadir ({defaultPax} pax)</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => openPaxModal(guest)}
-                            disabled={isProcessing}
-                            className="py-2.5 px-3 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition"
-                            title="Ubah jumlah pax tamu sebelum check-in"
-                          >
-                            Ubah Pax
-                          </button>
-                        </>
+                        <button
+                          type="button"
+                          onClick={() => handleCheckIn(guest)}
+                          disabled={isProcessing}
+                          className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 active:scale-98 transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                              <span>Memproses...</span>
+                            </>
+                          ) : (
+                            <>
+                              <LuCheck className="w-4 h-4" />
+                              <span>Check-In</span>
+                            </>
+                          )}
+                        </button>
                       ) : (
-                        <div className="flex-1 flex items-center justify-between text-xs text-slate-400 bg-white/2 rounded-xl p-2 px-3 border border-white/5">
-                          <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
-                            <LuCheck className="w-4 h-4" />
-                            Tercatat Hadir
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => openPaxModal(guest)}
-                            className="text-amber-400 hover:text-amber-300 font-medium text-[11px] underline"
-                          >
-                            Ubah Pax
-                          </button>
+                        <div className="flex-1 flex items-center gap-1.5 text-xs text-emerald-400 font-medium bg-white/2 rounded-xl p-2.5 px-3 border border-white/5">
+                          <LuCheck className="w-4 h-4" />
+                          <span>Tercatat Hadir</span>
                         </div>
                       )}
 
@@ -1022,7 +798,6 @@ export default function AdminCheckInPage() {
                       <th className="py-3 px-4 w-12 text-center">#</th>
                       <th className="py-3 px-4">Nama Tamu Undangan</th>
                       <th className="py-3 px-4">Kode Tiket</th>
-                      <th className="py-3 px-4">Kategori</th>
                       <th className="py-3 px-4">Pax</th>
                       <th className="py-3 px-4">Status Kehadiran</th>
                       <th className="py-3 px-4 text-right">Aksi Check-in</th>
@@ -1031,11 +806,15 @@ export default function AdminCheckInPage() {
                   <tbody className="divide-y divide-white/5">
                     {filteredGuests.map((guest, idx) => {
                       const isCheckedIn = Boolean(
-                        guest.is_present || guest.status?.toLowerCase() === "hadir"
+                        guest.is_present ||
+                        guest.status?.toLowerCase() === "hadir",
                       );
                       const isProcessing = checkingInCode === guest.code;
-                      const isRecentlyCheckedIn = recentlyCheckedInCodes.has(guest.code);
-                      const defaultPax = guest.total_guests || guest.quota_guests || 1;
+                      const isRecentlyCheckedIn = recentlyCheckedInCodes.has(
+                        guest.code,
+                      );
+                      const defaultPax =
+                        guest.total_guests || guest.quota_guests || 1;
 
                       return (
                         <tr
@@ -1044,8 +823,8 @@ export default function AdminCheckInPage() {
                             isRecentlyCheckedIn
                               ? "bg-emerald-950/40"
                               : isCheckedIn
-                              ? "bg-emerald-950/15 hover:bg-emerald-950/25"
-                              : "hover:bg-white/2"
+                                ? "bg-emerald-950/15 hover:bg-emerald-950/25"
+                                : "hover:bg-white/2"
                           }`}
                         >
                           {/* Index */}
@@ -1100,19 +879,6 @@ export default function AdminCheckInPage() {
                             </button>
                           </td>
 
-                          {/* Kategori */}
-                          <td className="py-3 px-4">
-                            {guest.source === "pre_registered" ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/20">
-                                VIP (Pre-reg)
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/20">
-                                Mandiri (RSVP)
-                              </span>
-                            )}
-                          </td>
-
                           {/* Pax */}
                           <td className="py-3 px-4">
                             <span className="font-medium text-slate-200">
@@ -1147,52 +913,30 @@ export default function AdminCheckInPage() {
                           <td className="py-3 px-4 text-right">
                             <div className="inline-flex items-center gap-2">
                               {!isCheckedIn ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleCheckIn(guest)}
-                                    disabled={isProcessing}
-                                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 active:scale-95 transition disabled:opacity-50 cursor-pointer"
-                                    title={`Tandai ${guest.name} hadir dengan ${defaultPax} pax`}
-                                  >
-                                    {isProcessing ? (
-                                      <>
-                                        <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                                        <span>Proses...</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <LuCheck className="w-3.5 h-3.5" />
-                                        <span>Hadir</span>
-                                      </>
-                                    )}
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => openPaxModal(guest)}
-                                    disabled={isProcessing}
-                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition"
-                                    title="Ubah Pax"
-                                  >
-                                    <LuUsers className="w-3.5 h-3.5" />
-                                  </button>
-                                </>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCheckIn(guest)}
+                                  disabled={isProcessing}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 active:scale-95 transition disabled:opacity-50 cursor-pointer"
+                                  title={`Tandai ${guest.name} hadir (${defaultPax} pax)`}
+                                >
+                                  {isProcessing ? (
+                                    <>
+                                      <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                                      <span>Proses...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <LuCheck className="w-3.5 h-3.5" />
+                                      <span>Hadir</span>
+                                    </>
+                                  )}
+                                </button>
                               ) : (
-                                <div className="inline-flex items-center gap-1.5">
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                    <LuCheck className="w-3.5 h-3.5" />
-                                    Hadir
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => openPaxModal(guest)}
-                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-amber-300 transition"
-                                    title="Ubah Pax Kehadiran"
-                                  >
-                                    <LuUsers className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  <LuCheck className="w-3.5 h-3.5" />
+                                  Hadir
+                                </span>
                               )}
 
                               {/* Detail / QR modal button */}
@@ -1218,94 +962,117 @@ export default function AdminCheckInPage() {
       </main>
 
       {/* ========================================================================= */}
-      {/* MODAL ADJUST PAX */}
+      {/* MODAL SUCCESS CHECK-IN (IDENTIK DENGAN HALAMAN /reservations) */}
       {/* ========================================================================= */}
       <AnimatePresence>
-        {paxModalGuest && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        {successModalData && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            onClick={handleCloseSuccessModal}
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#0e111a] border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative"
+              key="success-checkin-modal"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white/8 border border-white/20 p-5 sm:p-7 backdrop-blur-2xl shadow-2xl text-center max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
             >
+              {/* Close Button X */}
               <button
-                onClick={() => setPaxModalGuest(null)}
-                className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition"
+                type="button"
+                onClick={handleCloseSuccessModal}
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition z-10 cursor-pointer"
+                title="Tutup (Esc)"
               >
                 <LuX className="w-5 h-5" />
               </button>
 
-              <div className="text-center mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto mb-3">
-                  <LuUserCheck className="w-6 h-6" />
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-white">
-                  Konfirmasi Kehadiran
-                </h3>
-                <p className="text-xs text-amber-300 font-semibold mt-0.5">
-                  {paxModalGuest.name}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Kode Tiket:{" "}
-                  <span className="font-mono font-bold text-white">
-                    #{paxModalGuest.code}
+              {/* Decorative Glow */}
+              <div className="absolute -top-16 -left-16 w-36 h-36 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -right-16 w-36 h-36 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Status Badge */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 350, damping: 20 }}
+                className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2.5 sm:mb-3 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl shadow-lg ${
+                  successModalData.is_already
+                    ? "bg-linear-to-tr from-amber-500 to-yellow-400 shadow-amber-500/30"
+                    : "bg-linear-to-tr from-emerald-500 to-teal-400 shadow-emerald-500/30"
+                }`}
+              >
+                <BsCheckLg />
+              </motion.div>
+
+              <p
+                className={`text-[11px] tracking-widest uppercase font-semibold mb-0.5 ${
+                  successModalData.is_already
+                    ? "text-amber-300"
+                    : "text-emerald-400"
+                }`}
+              >
+                {successModalData.is_already
+                  ? "Sudah Check-In Sebelumnya"
+                  : "Check-in Berhasil!"}
+              </p>
+
+              <h2 className="text-xl sm:text-2xl font-playfair font-bold text-white mb-0.5">
+                Selamat Datang
+              </h2>
+              <p className="font-alex-brush text-amber-200 text-2xl sm:text-3xl mb-2 sm:mb-3">
+                {successModalData.guest.name}
+              </p>
+
+              <div className="my-2.5 sm:my-4 rounded-xl sm:rounded-2xl bg-black/40 border border-white/10 p-3 text-left space-y-2">
+                <div className="flex items-center justify-between text-xs text-white/70 border-b border-white/10 pb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <BsQrCode className="text-amber-300" /> Kode Reservasi
                   </span>
-                </p>
-              </div>
-
-              {/* Pax Counter Stepper */}
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-4 mb-5 text-center">
-                <span className="text-xs text-slate-400 block mb-2">
-                  Jumlah Tamu yang Hadir Fisik
-                </span>
-                <div className="flex items-center justify-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCustomPaxCount((prev) => Math.max(1, prev - 1))
-                    }
-                    className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-lg flex items-center justify-center transition cursor-pointer"
-                  >
-                    -
-                  </button>
-                  <div className="text-3xl font-mono font-bold text-amber-300 min-w-16">
-                    {customPaxCount}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCustomPaxCount((prev) => Math.min(10, prev + 1))
-                    }
-                    className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-lg flex items-center justify-center transition cursor-pointer"
-                  >
-                    +
-                  </button>
+                  <span className="font-mono text-white text-xs sm:text-sm font-semibold tracking-wider">
+                    {successModalData.guest.code}
+                  </span>
                 </div>
-                <span className="text-[11px] text-slate-500 mt-2 block">
-                  Standar kuota: {paxModalGuest.quota_guests || 2} Pax
-                </span>
+
+                <div className="flex items-center justify-between text-xs text-white/70 border-b border-white/10 pb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <BsPeople className="text-emerald-300" /> Tamu Hadir
+                  </span>
+                  <span className="text-emerald-400 font-bold text-xs sm:text-sm">
+                    {successModalData.actual_guest} Orang
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-white/70">
+                  <span className="flex items-center gap-1.5">
+                    <BsClock className="text-blue-300" /> Waktu Check-In
+                  </span>
+                  <span className="text-white/90 text-right text-[11px] sm:text-xs">
+                    {formatModalDateTime(
+                      successModalData.guest.attended_at ||
+                        new Date().toISOString(),
+                    )}
+                  </span>
+                </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPaxModalGuest(null)}
-                  className="flex-1 py-3 px-4 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 transition cursor-pointer"
+              <p className="text-[11px] sm:text-xs text-white/70 italic mb-4">
+                &ldquo;{successModalData.message}&rdquo;
+              </p>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleCloseSuccessModal}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 px-5 rounded-xl sm:rounded-full bg-linear-to-r from-amber-400 to-amber-300 text-black font-semibold text-xs sm:text-sm shadow-md hover:brightness-105 transition cursor-pointer"
                 >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCheckIn(paxModalGuest, customPaxCount)}
-                  disabled={checkingInCode === paxModalGuest.code}
-                  className="flex-2 py-3 px-4 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 active:scale-98 transition cursor-pointer disabled:opacity-50"
-                >
-                  {checkingInCode === paxModalGuest.code
-                    ? "Memproses..."
-                    : `Simpan & Hadir (${customPaxCount} pax)`}
-                </button>
+                  <BsArrowCounterclockwise className="text-base" />
+                  <span>Tutup ({modalCountdown}s)</span>
+                </motion.button>
               </div>
             </motion.div>
           </div>
@@ -1347,7 +1114,7 @@ export default function AdminCheckInPage() {
               <div className="bg-white p-3.5 rounded-2xl shadow-inner max-w-[210px] mx-auto mb-4 text-center">
                 <Image
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(
-                    buildInvitationUrl(detailGuest.name, detailGuest.code)
+                    buildInvitationUrl(detailGuest.name, detailGuest.code),
                   )}`}
                   alt={`QR Code ${detailGuest.name}`}
                   width={220}
