@@ -20,6 +20,7 @@ import {
   LuX,
   LuExternalLink,
   LuCopy,
+  LuUsers,
 } from "react-icons/lu";
 import {
   BsCheckLg,
@@ -72,6 +73,8 @@ export default function AdminCheckInPage() {
   }, [searchParams]);
 
   const [guests, setGuests] = useState<GuestCheckInItem[]>([]);
+  const [totalGuestsCount, setTotalGuestsCount] = useState<number | null>(null);
+  const [isLoadingTotal, setIsLoadingTotal] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
@@ -274,35 +277,105 @@ export default function AdminCheckInPage() {
     };
   }, [searchQuery]);
 
-  // Refresh data tamu yang sedang dicari
+  // Fetch total registered guests count from server
+  const fetchTotalGuests = useCallback(async () => {
+    setIsLoadingTotal(true);
+    try {
+      const publicApi = getPublicApiUrl();
+      const endpoints = Array.from(
+        new Set(
+          [
+            "/api/reservations?limit=1",
+            publicApi ? `${publicApi}/api/reservations?limit=1` : null,
+            "/api/reservations",
+            publicApi ? `${publicApi}/api/reservations` : null,
+          ].filter(Boolean) as string[],
+        ),
+      );
+
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url, {
+            cache: "no-store",
+            signal: AbortSignal.timeout(6000),
+          });
+
+          const raw = await res.text();
+          let json: {
+            data?: unknown[];
+            pagination?: {
+              total_records?: number;
+            };
+            total?: number;
+            stats?: {
+              total?: number;
+            };
+          } | null = null;
+          try {
+            json = JSON.parse(raw);
+          } catch {
+            json = null;
+          }
+
+          if (res.ok && json) {
+            const count =
+              json.stats?.total ??
+              json.pagination?.total_records ??
+              json.total ??
+              (Array.isArray(json.data) ? json.data.length : null);
+
+            if (typeof count === "number") {
+              setTotalGuestsCount(count);
+              break;
+            }
+          }
+        } catch {
+          // Coba endpoint fallback berikutnya
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingTotal(false);
+    }
+  }, []);
+
+  // Ambil total tamu saat mount
+  useEffect(() => {
+    fetchTotalGuests();
+  }, [fetchTotalGuests]);
+
+  // Refresh data total tamu dan data tamu yang sedang dicari
   const handleRefresh = useCallback(async () => {
-    const trimmed = searchQuery.trim();
-    if (!trimmed) return;
     setIsRefreshing(true);
     try {
-      const res = await fetch(
-        `/api/reservations?q=${encodeURIComponent(trimmed)}`,
-        {
-          cache: "no-store",
-          signal: AbortSignal.timeout(6000),
-        },
-      );
-      const json = await res.json().catch(() => null);
-      if (res.ok && Array.isArray(json?.data)) {
-        const sorted = [...json.data].sort((a, b) =>
-          (a.name || "").localeCompare(b.name || "", "id", {
-            sensitivity: "base",
-          }),
+      await fetchTotalGuests();
+      const trimmed = searchQuery.trim();
+      if (trimmed) {
+        const res = await fetch(
+          `/api/reservations?q=${encodeURIComponent(trimmed)}`,
+          {
+            cache: "no-store",
+            signal: AbortSignal.timeout(6000),
+          },
         );
-        setGuests(sorted);
-        toast.success("Data pencarian berhasil diperbarui!");
+        const json = await res.json().catch(() => null);
+        if (res.ok && Array.isArray(json?.data)) {
+          const sorted = [...json.data].sort((a, b) =>
+            (a.name || "").localeCompare(b.name || "", "id", {
+              sensitivity: "base",
+            }),
+          );
+          setGuests(sorted);
+        }
       }
+      toast.success("Data berhasil diperbarui!");
     } catch {
       // ignore
     } finally {
       setIsRefreshing(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, fetchTotalGuests]);
 
   // Check-In Handler
   const handleCheckIn = async (guest: GuestCheckInItem, customPax?: number) => {
@@ -574,7 +647,7 @@ export default function AdminCheckInPage() {
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
-              disabled={isRefreshing || isLoading || !searchQuery.trim()}
+              disabled={isRefreshing || isLoading || isLoadingTotal}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition disabled:opacity-50"
               title="Refresh Data Tamu"
             >
@@ -601,6 +674,49 @@ export default function AdminCheckInPage() {
       {/* ========================================================================= */}
       <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         {/* ========================================================================= */}
+        {/* STATS: TOTAL TAMU (MOBILE FRIENDLY) */}
+        {/* ========================================================================= */}
+        <div className="mb-4 sm:mb-6">
+          <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#131722] via-[#0e111a] to-[#0a0c12] border border-amber-500/20 p-4 sm:p-5 shadow-lg shadow-black/40">
+            {/* Ambient gold glow */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 flex items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                  <LuUsers className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Total Tamu
+                  </p>
+                  <p className="text-xs text-slate-500 truncate hidden sm:block">
+                    Tamu terdaftar di database
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-right shrink-0">
+                {isLoadingTotal ? (
+                  <div className="h-8 w-16 sm:w-20 bg-white/10 rounded-lg animate-pulse" />
+                ) : (
+                  <div className="flex items-baseline justify-end gap-1.5">
+                    <span className="font-mono text-2xl sm:text-3xl font-bold bg-linear-to-r from-amber-200 via-amber-300 to-amber-100 bg-clip-text text-transparent">
+                      {totalGuestsCount !== null
+                        ? totalGuestsCount.toLocaleString("id-ID")
+                        : "-"}
+                    </span>
+                    <span className="text-xs sm:text-sm font-medium text-slate-400">
+                      tamu
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
         {/* SEARCH BAR */}
         {/* ========================================================================= */}
         <div className="bg-[#0e111a] border border-white/10 rounded-2xl p-4 sm:p-5 mb-6 shadow-xl">
@@ -614,7 +730,7 @@ export default function AdminCheckInPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Ketik nama tamu, kode tiket (misal 99796), atau no HP... (Tekan '/' untuk fokus)"
+              placeholder="Cari nama sesuai diundangan atau kode tiket (misal 99796), atau no HP... (Tekan '/' untuk fokus)"
               className="w-full pl-11 sm:pl-12 pr-10 py-3 sm:py-3.5 bg-black/40 border border-white/15 rounded-xl text-white placeholder-slate-500 text-sm sm:text-base focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition"
               autoFocus
             />
